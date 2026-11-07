@@ -6,18 +6,27 @@ export type Grade = '大吉' | '吉' | '中平' | '小凶' | '凶';
 export const QIAN_COUNT = 60;
 export const GRADE_NOTE: string = readings.gradeNote;
 
+/** 分类建议：现况、建议、留意（时机或注意事项）。 */
+export interface Advice {
+  now: string;
+  do: string;
+  note: string;
+}
+
 export interface Qian {
   no: number;
   ganzhi: string;
   attr: string;
-  lines: string[];
+  lines: string[]; // 签诗原文四句
   variants: { line: number; others: Record<string, string> }[];
   grade: Grade;
-  plain: string;
-  advice: Record<CategoryId, string>;
+  key: string; // 签意重点
+  plain: string; // 白话解说
+  lineNotes: string[]; // 逐句诗意，与 lines 一一对应
+  advice: Record<CategoryId, Advice>;
 }
 
-type Reading = { grade: Grade; plain: string; advice: Record<CategoryId, string> };
+type Reading = { grade: Grade; key: string; plain: string; lines: string[]; advice: Record<CategoryId, Advice> };
 
 export function getQian(no: number): Qian {
   const p = poems.poems[no - 1];
@@ -30,7 +39,9 @@ export function getQian(no: number): Qian {
     lines: p.lines,
     variants: (p as { variants?: Qian['variants'] }).variants ?? [],
     grade: r.grade,
+    key: r.key,
     plain: r.plain,
+    lineNotes: r.lines,
     advice: r.advice,
   };
 }

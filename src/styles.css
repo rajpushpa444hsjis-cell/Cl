@@ -1133,6 +1133,83 @@ p.verdict {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+.qian-key {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 12px 0 0;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.qian-key span {
+  flex: none;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--red-ink);
+  background: var(--red);
+  padding: 1px 6px 1px 8px;
+  border-radius: 6px;
+}
+.line-notes {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.line-notes li {
+  display: grid;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--gold-2) 70%, transparent);
+}
+.line-notes b {
+  font-family: var(--serif);
+  font-size: 16.5px;
+  letter-spacing: 0.08em;
+  color: var(--red);
+}
+.line-notes span {
+  font-size: 15px;
+  color: var(--ink);
+}
+.advice-rows {
+  margin: 4px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.advice-rows div {
+  display: grid;
+  grid-template-columns: 2.6em 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.advice-rows dt {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.qian-sec.focus .advice-rows dt {
+  color: var(--red);
+}
+.advice-rows dd {
+  margin: 0;
+  min-width: 0;
+}
+.other-cat {
+  padding: 10px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.other-cat h4 {
+  margin: 0 0 2px;
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink-2);
+}
 .qian-sec {
   margin: 14px 0;
 }
@@ -1166,24 +1243,6 @@ p.verdict {
   font-size: 15px;
   padding: 6px 0;
   min-height: 36px;
-}
-.qian-more dl {
-  margin: 4px 0;
-}
-.qian-more dl div {
-  display: grid;
-  grid-template-columns: 3em 1fr;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dotted var(--line);
-}
-.qian-more dt {
-  font-family: var(--serif);
-  font-weight: 700;
-  color: var(--ink-2);
-}
-.qian-more dd {
-  margin: 0;
 }
 .variants {
   margin: 4px 0;

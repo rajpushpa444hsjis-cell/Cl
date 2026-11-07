@@ -25,12 +25,18 @@ describe('六十甲子签资料', () => {
     expect(poems.poems.map((p) => p.ganzhi)).toEqual(expected);
   });
 
-  it('每首都有吉凶、白话与六类建议', () => {
+  it('每首都有吉凶、签意、白话、逐句解读与六类建议（现况／建议／留意）', () => {
     for (let i = 1; i <= 60; i++) {
       const q = getQian(i);
       expect(readings.grades).toContain(q.grade);
       expect(q.plain.length).toBeGreaterThan(30);
-      for (const c of CATEGORIES) expect(q.advice[c.id], `${i} ${c.id}`).toBeTruthy();
+      expect(q.key.length).toBeGreaterThan(3);
+      expect(q.lineNotes).toHaveLength(4);
+      for (const n of q.lineNotes) expect(n.length).toBeGreaterThan(4);
+      for (const c of CATEGORIES) {
+        const a = q.advice[c.id];
+        expect(a?.now && a?.do && a?.note, `${i} ${c.id}`).toBeTruthy();
+      }
     }
   });
 
