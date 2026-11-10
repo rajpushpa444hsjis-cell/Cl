@@ -3,7 +3,7 @@ import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => ({
-  // 相对路径：之后不论部署到网域根目录或子路径（如 GitHub Pages 的 /Lucky/）都能运作
+  // 相对路径：之后不论部署到网域根目录或子路径（如 GitHub Pages 的 /Cl/）都能运作
   base: './',
   plugins: [
     preact(),

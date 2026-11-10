@@ -67,7 +67,7 @@ node scripts/gen-poems-hans.mjs            # 由繁体定稿转出简体版 qian
 
 `.github/workflows/deploy.yml` 会在合并到 `main` 时自动测试、建置并部署，网址为：
 
-**https://a669140250-a11y.github.io/Lucky/**
+**https://rajpushpa444hsjis-cell.github.io/Cl/**
 
 第一次部署前要在 GitHub 上设置两件事：
 
@@ -76,7 +76,7 @@ node scripts/gen-poems-hans.mjs            # 由繁体定稿转出简体版 qian
 
 之后合并到 `main` 就会自动部署；也可以在 Actions 页选“部署到 GitHub Pages” → Run workflow 手动执行。
 
-摇动侦测（DeviceMotion）必须在 HTTPS 下使用，GitHub Pages 本身就是 HTTPS。`vite.config.ts` 设置了 `base: './'`，放在子路径 `/Lucky/` 也能正常运作；`dist/` 也可以上传到任何其他静态网站主机。
+摇动侦测（DeviceMotion）必须在 HTTPS 下使用，GitHub Pages 本身就是 HTTPS。`vite.config.ts` 设置了 `base: './'`，放在子路径 `/Cl/` 也能正常运作；`dist/` 也可以上传到任何其他静态网站主机。
 
 ## 加到手机主屏幕
 
