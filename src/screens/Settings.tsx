@@ -3,7 +3,6 @@ import { ProfileForm } from '../components/ProfileForm';
 import { Footer, ScreenHeader } from '../components/ui';
 import { canVibrate } from '../lib/haptics';
 import { saveFile } from '../lib/platform';
-import { GRADE_NOTE, GUA_SOURCE, SOURCES } from '../lib/qian';
 import { type Backup, type Profile, type Settings as S, type ThemePref, makeBackup, parseBackup } from '../lib/storage';
 
 interface Props {
@@ -141,27 +140,6 @@ export function Settings(props: Props) {
           </button>
         )}
         {dataMsg && <p class="hint" role="status">{dataMsg}</p>}
-      </div>
-
-      <div class="card about">
-        <h2 class="card-title">关于</h2>
-        <p>
-          历法、干支、节气、黄历宜忌由开源函数库 lunar-javascript 计算。签诗为传统六十甲子签，原文依下列三个来源逐字比对、多数决定稿：
-        </p>
-        <ul>
-          {SOURCES.map((x) => (
-            <li key={x.id}>{x.name}</li>
-          ))}
-        </ul>
-        <p>各签所配的卦，以{GUA_SOURCE.name}为准，并与上列网站所印的卦象逐签比对。</p>
-        <p>白话解说、逐句与卦象解读、分类建议为本 App 撰写。{GRADE_NOTE}</p>
-        <p>
-          解签页“此签与你”：以签的五行对照你的日主、签所利的季节对照当下节气、签的吉凶对照今天的十神，逐项组合而成。
-        </p>
-        <p>今日运势：主题依今日日干与日主的十神关系而定。</p>
-        <p>
-          今日一卦：参考梅花易数以数起卦。生日数取出生的年支序数、农历月、农历日之和；上卦取今日天干序数加生日数，下卦取今日地支序数加农历月再加生日数，各除以八取余；动爻取今年年支序数、农历月、农历日加生日数，除以六取余。动爻所在的一卦为用、另一卦为体，再看体用的五行生克。
-        </p>
       </div>
 
       <Footer />

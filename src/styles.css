@@ -1422,15 +1422,6 @@ p.verdict {
 }
 
 /* ===== 其他 ===== */
-.about ul {
-  padding-left: 1.2em;
-  margin: 6px 0;
-  font-size: 14px;
-}
-.about p {
-  font-size: 14px;
-  color: var(--ink-2);
-}
 .disclaimer {
   text-align: center;
   font-size: 12px;

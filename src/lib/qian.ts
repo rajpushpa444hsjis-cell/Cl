@@ -6,7 +6,6 @@ import type { CategoryId } from './storage';
 
 export type Grade = '大吉' | '吉' | '中平' | '小凶' | '凶';
 export const QIAN_COUNT = 60;
-export const GRADE_NOTE: string = readings.gradeNote;
 
 /** 分类建议：现况、建议、留意（时机或注意事项）。 */
 export interface Advice {
@@ -71,6 +70,3 @@ export function cnNumber(n: number): string {
 
 export const gradeTone = (g: Grade): 'good' | 'mid' | 'bad' =>
   g === '大吉' || g === '吉' ? 'good' : g === '中平' ? 'mid' : 'bad';
-
-export const SOURCES = poems.sources;
-export const GUA_SOURCE = poems.guaSource;
