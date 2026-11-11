@@ -1,4 +1,5 @@
 // 今日运势卡片：直接用 Canvas 2D 绘制 1080×1350（4:5），避免 DOM 转图在 iOS 上字型跑掉。
+import type { DailyGua } from './dailyGua';
 import type { DailyFortune } from './fortune';
 import type { DayInfo } from './lunar';
 
@@ -62,16 +63,17 @@ export interface CardInput {
   nickname: string;
   day: DayInfo;
   fortune: DailyFortune;
+  gua: DailyGua;
   dayMaster: string;
   element: string;
 }
 
 export async function renderFortuneCard(input: CardInput): Promise<Blob> {
-  const { nickname, day, fortune: f } = input;
+  const { nickname, day, fortune: f, gua } = input;
   // 网络字型依字元分段加载：先把卡片会用到的字载好，否则 Canvas 会用后备字型
   try {
     const text = [day.solarText, day.weekday, day.lunarText, day.dayGz, day.jieqi, f.god, f.theme, f.line,
-      f.color, f.element, ...day.yi, ...day.ji, f.chong?.title ?? '', '今日一签农历年月日宜忌幸运五行色数字凡事宜缓・'].join('');
+      gua.full, gua.theme, ...day.yi, ...day.ji, f.chong?.title ?? '', '今日一签农历年月日宜忌凡事宜缓的运势・'].join('');
     await Promise.all([
       document.fonts.load(`700 48px "Noto Serif SC"`, text),
       document.fonts.load(`400 34px "Noto Serif SC"`, text),
@@ -151,43 +153,35 @@ export async function renderFortuneCard(input: CardInput): Promise<Blob> {
     ctx.fillText(l, W / 2, y);
   }
 
-  // 幸运三格
-  const top = y + 40;
-  const boxW = 250;
-  const boxH = 138;
-  const gap = 30;
-  const x0 = (W - boxW * 3 - gap * 2) / 2;
-  const items: [string, string][] = [
-    ['幸运五行', f.element],
-    ['幸运色', `${f.color}色`],
-    ['幸运数字', f.numbers.join('・')],
-  ];
-  items.forEach(([label, value], i) => {
-    const x = x0 + i * (boxW + gap);
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    roundRect(ctx, x, top, boxW, boxH, 18);
-    ctx.fill();
-    ctx.strokeStyle = C.line;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = C.ink2;
-    ctx.font = `400 28px ${SANS}`;
-    ctx.fillText(label, x + boxW / 2, top + 46);
-    ctx.fillStyle = C.ink;
-    ctx.font = `700 48px ${SERIF}`;
-    if (i === 1) {
-      ctx.fillStyle = f.colorHex;
-      ctx.beginPath();
-      ctx.arc(x + 70, top + 96, 20, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = C.ink;
-      ctx.fillText(value, x + boxW / 2 + 20, top + 112);
-    } else ctx.fillText(value, x + boxW / 2, top + 112);
+  // 今日一卦：左边画六爻（动爻用金色），右边卦名与主题
+  const top = y + 44;
+  const figW = 120;
+  const barH = 13;
+  const barGap = 11;
+  ctx.font = `700 60px ${SERIF}`;
+  const nameW = ctx.measureText(gua.full).width;
+  ctx.font = `400 36px ${SERIF}`;
+  const textW = Math.max(nameW, ctx.measureText(gua.theme).width);
+  const figX = (W - (figW + 44 + textW)) / 2;
+  gua.lines.forEach((yang, i) => {
+    const by = top + i * (barH + barGap) + (i >= 3 ? 12 : 0);
+    ctx.fillStyle = gua.moving === 6 - i ? C.gold : C.red;
+    if (yang) ctx.fillRect(figX, by, figW, barH);
+    else {
+      ctx.fillRect(figX, by, figW * 0.42, barH);
+      ctx.fillRect(figX + figW * 0.58, by, figW * 0.42, barH);
+    }
   });
-  y = top + boxH;
+  const figH = 6 * barH + 5 * barGap + 12;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.ink;
+  ctx.font = `700 60px ${SERIF}`;
+  ctx.fillText(gua.full, figX + figW + 44, top + 62);
+  ctx.fillStyle = C.ink2;
+  ctx.font = `400 36px ${SERIF}`;
+  ctx.fillText(gua.theme, figX + figW + 44, top + 118);
+  ctx.textAlign = 'center';
+  y = top + figH;
 
   // 宜忌：各一行，放不下的以“等”结尾
   y += 70;

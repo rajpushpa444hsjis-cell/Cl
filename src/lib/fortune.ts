@@ -43,23 +43,6 @@ export function elementGroup(me: Element, other: Element): GodGroup {
   return '印';
 }
 
-/** 与日主为某种关系的五行。 */
-export function elementOfGroup(me: Element, group: GodGroup): Element {
-  switch (group) {
-    case '比劫': return me;
-    case '食伤': return generates(me);
-    case '财': return controls(me);
-    case '官杀': return ORDER.find((e) => controls(e) === me)!;
-    case '印': return ORDER.find((e) => generates(e) === me)!;
-  }
-}
-
-export function luckyElement(dayMaster: string, todayGan: string): Element {
-  const group = groupOf(tenGod(dayMaster, todayGan));
-  const want = (rules.luckyRule as Record<GodGroup, GodGroup>)[group];
-  return elementOfGroup(ganElement(dayMaster), want);
-}
-
 /** 字串杂凑（FNV-1a），让同一天、同一人看到的运势句固定。 */
 export function hash(s: string): number {
   let h = 0x811c9dc5;
@@ -80,10 +63,6 @@ export interface DailyFortune {
   theme: string;
   summary: string;
   line: string;
-  element: Element;
-  color: string;
-  colorHex: string;
-  numbers: number[];
   chong: null | { title: string; text: string };
   vars: Record<string, string>;
 }
@@ -91,16 +70,11 @@ export interface DailyFortune {
 export function dailyFortune(bazi: Bazi, day: DayInfo, seed: string): DailyFortune {
   const god = tenGod(bazi.dayMaster, day.dayGan);
   const g = (rules.tenGods as Record<TenGod, { theme: string; summary: string; lines: string[] }>)[god];
-  const element = luckyElement(bazi.dayMaster, day.dayGan);
-  const el = (rules.elements as Record<Element, { color: string; hex: string; numbers: number[] }>)[element];
   const line = g.lines[hash(`${day.key}|${seed}`) % g.lines.length];
   const vars: Record<string, string> = {
     dayGz: day.dayGz,
     god,
     theme: g.theme,
-    element,
-    color: `${el.color}色`,
-    numbers: el.numbers.join('、'),
     shengxiao: bazi.shengxiao,
     chongDesc: day.chongDesc,
   };
@@ -111,10 +85,6 @@ export function dailyFortune(bazi: Bazi, day: DayInfo, seed: string): DailyFortu
     theme: g.theme,
     summary: g.summary,
     line,
-    element,
-    color: el.color,
-    colorHex: el.hex,
-    numbers: el.numbers,
     chong: clashed ? { title: fill(rules.chong.title, vars), text: fill(rules.chong.text, vars) } : null,
     vars,
   };

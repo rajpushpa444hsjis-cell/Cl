@@ -543,12 +543,6 @@ input[type='checkbox'] {
   background: var(--surface-2);
   border: 1px solid var(--line);
 }
-.yiji-foot {
-  font-size: 13px;
-  color: var(--ink-3);
-  margin: 2px 0 0;
-  padding-left: 46px;
-}
 .alert {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -605,11 +599,6 @@ input[type='checkbox'] {
   font-size: 26px;
   letter-spacing: 0.08em;
 }
-.relation {
-  font-size: 13px;
-  color: var(--ink-2);
-  margin: 2px 0 0;
-}
 .fortune-line {
   font-family: var(--serif);
   font-size: 18px;
@@ -620,43 +609,6 @@ input[type='checkbox'] {
   background: var(--surface-2);
   border-radius: 0 12px 12px 0;
 }
-.lucky {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.lucky-item {
-  text-align: center;
-  padding: 10px 4px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-}
-.lucky-item .k {
-  display: block;
-  font-size: 12px;
-  color: var(--ink-2);
-}
-.lucky-item b {
-  font-family: var(--serif);
-  font-size: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.swatch {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
-}
-.el-木 { color: #3f8a57; }
-.el-火 { color: var(--red-2); }
-.el-土 { color: #b88a1c; }
-.el-金 { color: var(--gold); }
-.el-水 { color: var(--ink); }
-
 /* ===== 底部导览 ===== */
 .tabbar {
   position: fixed;
@@ -1247,6 +1199,30 @@ p.verdict {
 }
 .gua-fig i:nth-child(4) {
   margin-top: 8px; /* 上卦与下卦之间 */
+}
+.gua-fig i.moving {
+  background: var(--gold);
+}
+.gua-fig i.yin.moving {
+  background: linear-gradient(90deg, var(--gold) 0 40%, transparent 40% 60%, var(--gold) 60% 100%);
+}
+/* 首页：今日一卦 */
+.daily-gua-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.daily-gua-theme {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+.daily-gua > p {
+  margin: 8px 0 0;
 }
 .gua-body {
   min-width: 0;

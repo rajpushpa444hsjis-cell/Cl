@@ -1,6 +1,7 @@
 import type { PersonalLine } from '../lib/personal';
 import { type Advice, type Gua, type Qian, cnNumber } from '../lib/qian';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
+import { GuaFig } from './GuaFig';
 import { GradeSeal } from './ui';
 
 function AdviceRows(props: { a: Advice }) {
@@ -22,16 +23,11 @@ function AdviceRows(props: { a: Advice }) {
   );
 }
 
-/** 卦象：六爻由上到下画出，阳爻一横、阴爻断开；上下卦之间留空。 */
 function GuaBlock(props: { g: Gua }) {
   const { g } = props;
   return (
     <section class="gua">
-      <div class="gua-fig" role="img" aria-label={`${g.full}卦，上卦${g.upper.name}，下卦${g.lower.name}`}>
-        {g.lines.map((yang, i) => (
-          <i key={i} class={yang ? 'yang' : 'yin'} />
-        ))}
-      </div>
+      <GuaFig lines={g.lines} label={`${g.full}卦，上卦${g.upper.name}，下卦${g.lower.name}`} />
       <div class="gua-body">
         <h3>
           <span>卦象</span>

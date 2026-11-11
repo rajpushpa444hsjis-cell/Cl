@@ -1,6 +1,6 @@
-import guaData from '../data/gua.json';
 import poems from '../data/qian-poems-hans.json';
 import readings from '../data/qian-readings.json';
+import { type GuaBase, guaOf } from './gua';
 import type { Element, Season } from './lunar';
 import type { CategoryId } from './storage';
 
@@ -15,22 +15,9 @@ export interface Advice {
   note: string;
 }
 
-/** 八卦之一：卦名、所象、五行。 */
-export interface Trigram {
-  name: string; // 坎
-  image: string; // 水
-  element: Element;
-}
-
-/** 这支签所配的卦（各签配卦取自签诗书目录，见 docs/籤詩核對報告.md）。 */
-export interface Gua {
-  full: string; // 水山蹇
-  name: string; // 蹇
-  no: number; // 六十四卦序
-  upper: Trigram;
-  lower: Trigram;
-  lines: number[]; // 六爻，由上到下，1 阳 0 阴
-  note: string; // 卦象解读（原创）
+/** 这支签所配的卦（各签配卦取自签诗书目录，见 docs/籤詩核對報告.md），加上原创的卦象解读。 */
+export interface Gua extends GuaBase {
+  note: string;
 }
 
 export interface Qian {
@@ -50,25 +37,6 @@ export interface Qian {
 }
 
 type Reading = { grade: Grade; key: string; plain: string; lines: string[]; gua: string; advice: Record<CategoryId, Advice> };
-type TrigramData = Trigram & { lines: number[] };
-
-function getGua(key: string, note: string): Gua {
-  const [up, low] = [...key];
-  const trigrams = guaData.trigrams as Record<string, TrigramData>;
-  const h = (guaData.hexagrams as Record<string, { no: number; name: string; full: string }>)[key];
-  if (!h || !trigrams[up] || !trigrams[low]) throw new Error(`未知的卦：${key}`);
-  const pick = (t: TrigramData): Trigram => ({ name: t.name, image: t.image, element: t.element });
-  return {
-    full: h.full,
-    name: h.name,
-    no: h.no,
-    upper: pick(trigrams[up]),
-    lower: pick(trigrams[low]),
-    lines: [...trigrams[up].lines, ...trigrams[low].lines],
-    note,
-  };
-}
-
 export function getQian(no: number): Qian {
   const p = poems.poems[no - 1];
   const r = (readings.readings as Record<string, Reading>)[String(no)];
@@ -87,7 +55,7 @@ export function getQian(no: number): Qian {
     key: r.key,
     plain: r.plain,
     lineNotes: r.lines,
-    gua: getGua(p.gua, r.gua),
+    gua: { ...guaOf(p.gua), note: r.gua },
     advice: r.advice,
   };
 }

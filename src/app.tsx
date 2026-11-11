@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ProfileForm } from './components/ProfileForm';
 import { Footer, Icon } from './components/ui';
 import { setSoundEnabled } from './lib/audio';
+import { dailyGua } from './lib/dailyGua';
 import { dailyFortune } from './lib/fortune';
 import { setVibrateEnabled } from './lib/haptics';
 import { computeBazi, dateKey, getDayInfo } from './lib/lunar';
@@ -82,6 +83,8 @@ export function App() {
     [profile, bazi, day],
   );
 
+  const gua = useMemo(() => (profile ? dailyGua(profile.birth, day.key) : null), [profile, day]);
+
   const switchTab = (t: Tab) => {
     setTab(t);
     window.scrollTo({ top: 0 });
@@ -96,7 +99,7 @@ export function App() {
     saveJournal(j);
   };
 
-  if (!profile || !bazi || !fortune) {
+  if (!profile || !bazi || !fortune || !gua) {
     return (
       <div class="app onboarding">
         <div class="hero">
@@ -124,7 +127,7 @@ export function App() {
     <div class="app">
       <main>
         <div hidden={tab !== 'home'}>
-          <Home profile={profile} bazi={bazi} day={day} fortune={fortune} onDraw={() => switchTab('draw')} />
+          <Home profile={profile} bazi={bazi} day={day} fortune={fortune} gua={gua} onDraw={() => switchTab('draw')} />
         </div>
         <div hidden={tab !== 'draw'}>
           <Draw

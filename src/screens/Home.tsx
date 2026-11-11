@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'preact/hooks';
+import { GuaFig } from '../components/GuaFig';
 import { Footer, Icon, Modal, ScreenHeader } from '../components/ui';
 import { canShareFiles, renderFortuneCard, shareImage } from '../lib/card';
 import { IS_PREVIEW, saveFile } from '../lib/platform';
+import type { DailyGua } from '../lib/dailyGua';
 import type { DailyFortune } from '../lib/fortune';
-import { type Bazi, type DayInfo, ganElement } from '../lib/lunar';
+import type { Bazi, DayInfo } from '../lib/lunar';
 import type { Profile } from '../lib/storage';
 
 interface Props {
@@ -11,10 +13,11 @@ interface Props {
   bazi: Bazi;
   day: DayInfo;
   fortune: DailyFortune;
+  gua: DailyGua;
   onDraw: () => void;
 }
 
-export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
+export function Home({ profile, bazi, day, fortune: f, gua, onDraw }: Props) {
   const [cardOpen, setCardOpen] = useState(false);
   const [card, setCard] = useState<{ blob: Blob; url: string } | null>(null);
   const [cardErr, setCardErr] = useState('');
@@ -31,6 +34,7 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
         nickname: profile.nickname,
         day,
         fortune: f,
+        gua,
         dayMaster: bazi.dayMaster,
         element: bazi.element,
       });
@@ -52,7 +56,7 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
   const save = async () => {
     if (!card) return;
     const r = await saveFile(card.blob, filename);
-    setMsg(r === 'saved' ? '已保保存图片片' : r === 'declined' ? '' : '这里无法直接保存，请长按上方图片。');
+    setMsg(r === 'saved' ? '已保存图片' : r === 'declined' ? '' : '这里无法直接保存，请长按上方图片。');
   };
 
   const day2 = day.solarText.match(/(\d+)年(\d+)月(\d+)日/)!;
@@ -86,7 +90,6 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
           <span class="yiji-badge ji">忌</span>
           <div class="chips">{day.ji.map((w) => <span class="chip" key={w}>{w}</span>)}</div>
         </div>
-        <p class="yiji-foot">冲{day.chongDesc}・煞{day.sha}</p>
       </div>
 
       {f.chong && (
@@ -105,32 +108,23 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
             <span>{f.god[0]}</span>
             <span>{f.god[1]}</span>
           </div>
-          <div>
-            <p class="kicker">今日主题</p>
-            <h2 class="theme">{f.theme}</h2>
-            <p class="relation">
-              今日日干{day.dayGan}{ganElement(day.dayGan)}，对你的日主{bazi.dayMaster}{bazi.element}为“{f.god}”。
-            </p>
-          </div>
+          <h2 class="theme">{f.theme}</h2>
         </div>
         <p class="fortune-line">{f.line}</p>
-        <div class="lucky">
-          <div class="lucky-item">
-            <span class="k">幸运五行</span>
-            <b class={`el el-${f.element}`}>{f.element}</b>
-          </div>
-          <div class="lucky-item">
-            <span class="k">幸运色</span>
-            <b>
-              <i class="swatch" style={{ background: f.colorHex }} />
-              {f.color}色
-            </b>
-          </div>
-          <div class="lucky-item">
-            <span class="k">幸运数字</span>
-            <b>{f.numbers.join('・')}</b>
+      </div>
+
+      <div class="card daily-gua">
+        <div class="daily-gua-head">
+          <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻在第 ${gua.moving} 爻`} />
+          <div>
+            <h2 class="theme">{gua.full}</h2>
+            <p class="daily-gua-theme">{gua.theme}</p>
           </div>
         </div>
+        <p>{gua.text}</p>
+        <p>{gua.lineText}</p>
+        <p>{gua.tiyongText}</p>
+        <p>{gua.changeText}</p>
       </div>
 
       <div class="actions">
@@ -148,7 +142,6 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
         {card && (
           <>
             <img class="card-preview" src={card.url} alt="今日运势卡片" />
-            <p class="hint center small">手机上也可以长按图片直接保存。</p>
             <div class="row">
               {canShareFiles() && (
                 <button class="btn primary" onClick={share}>

@@ -166,6 +166,21 @@ export function computeBazi(b: Birth): Bazi {
   };
 }
 
+/**
+ * 起卦用的数：农历年的地支序数（子一…亥十二）、农历月（闰月按本月计）、农历日，
+ * 以及当天日柱的天干序数（甲一…癸十）、地支序数。
+ */
+export function lunarNumbers(y: number, m: number, d: number) {
+  const l = Solar.fromYmd(y, m, d).getLunar();
+  return {
+    yearZhi: ZHIS.indexOf(l.getYearZhi() as (typeof ZHIS)[number]) + 1,
+    month: Math.abs(l.getMonth()),
+    day: l.getDay(),
+    dayGan: GANS.indexOf(l.getDayGan() as (typeof GANS)[number]) + 1,
+    dayZhi: ZHIS.indexOf(l.getDayZhi() as (typeof ZHIS)[number]) + 1,
+  };
+}
+
 /** 验证公历日期是否存在。 */
 export function isValidDate(y: number, m: number, d: number): boolean {
   if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;

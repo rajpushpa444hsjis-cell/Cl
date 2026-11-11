@@ -20,6 +20,7 @@ declare module 'lunar-javascript' {
     getDayInGanZhi(): string;
     getDayGan(): string;
     getDayZhi(): string;
+    getYearZhi(): string;
     getMonth(): number;
     getDay(): number;
     getMonthInChinese(): string;
