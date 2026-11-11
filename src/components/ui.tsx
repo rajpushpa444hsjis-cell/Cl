@@ -4,7 +4,7 @@ import { useEffect } from 'preact/hooks';
 export function Footer() {
   return (
     <footer class="disclaimer">
-      本 App 内容仅供娱乐参考，请勿作为重大决定之依据。
+      本结果仅供参考
     </footer>
   );
 }

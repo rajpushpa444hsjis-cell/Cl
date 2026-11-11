@@ -223,7 +223,7 @@ export async function renderFortuneCard(input: CardInput): Promise<Blob> {
   ctx.font = `400 28px ${SANS}`;
   ctx.fillText(`${nickname}（日主${input.dayMaster}${input.element}）的今日运势`, W / 2, H - 126);
   ctx.font = `400 22px ${SANS}`;
-  ctx.fillText('本内容仅供娱乐参考', W / 2, H - 90);
+  ctx.fillText('本结果仅供参考', W / 2, H - 90);
 
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('卡片产生失败'))), 'image/png'),
