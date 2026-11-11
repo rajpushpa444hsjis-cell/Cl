@@ -20,6 +20,28 @@ export const SHENGXIAO: Record<string, string> = {
 };
 const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
 
+export type Season = '春' | '夏' | '秋' | '冬';
+export const SEASONS: Season[] = ['春', '夏', '秋', '冬'];
+const SEASON_START: Record<Season, string> = { 春: '立春', 夏: '立夏', 秋: '立秋', 冬: '立冬' };
+const ZHI_SEASON: Record<string, Season> = {
+  寅: '春', 卯: '春', 辰: '春', 巳: '夏', 午: '夏', 未: '夏',
+  申: '秋', 酉: '秋', 戌: '秋', 亥: '冬', 子: '冬', 丑: '冬',
+};
+
+/**
+ * 某一天之后（不含当天）下一次进入某个季节的日子，以立春、立夏、立秋、立冬为界。
+ * 节气日期取自函数库的节气表。
+ */
+export function nextSeasonStart(dayKey: string, season: Season): { text: string; jieqi: string } {
+  const jieqi = SEASON_START[season];
+  const year = Number(dayKey.slice(0, 4));
+  for (const y of [year, year + 1]) {
+    const s = Solar.fromYmd(y, 7, 1).getLunar().getJieQiTable()[jieqi];
+    if (s && s.toYmd() > dayKey) return { text: `${s.getYear()}年${s.getMonth()}月${s.getDay()}日`, jieqi };
+  }
+  throw new Error(`找不到 ${dayKey} 之后的${jieqi}`);
+}
+
 /** 天干五行（取自函式库对照表）。 */
 export function ganElement(gan: string): Element {
   const e = LunarUtil.WU_XING_GAN[gan];
@@ -45,6 +67,7 @@ export interface DayInfo {
   lunarText: string; // 九月廿九
   yearGz: string;
   monthGz: string;
+  season: Season; // 依月柱地支（节气换月）
   dayGz: string;
   dayGan: string;
   dayZhi: string;
@@ -69,6 +92,7 @@ export function getDayInfo(date: Date): DayInfo {
     lunarText: `${l.getMonthInChinese()}月${l.getDayInChinese()}`,
     yearGz: l.getYearInGanZhiByLiChun(),
     monthGz: l.getMonthInGanZhi(),
+    season: ZHI_SEASON[l.getMonthInGanZhi()[1]],
     dayGz: l.getDayInGanZhi(),
     dayGan: l.getDayGan(),
     dayZhi: l.getDayZhi(),

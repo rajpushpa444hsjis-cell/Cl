@@ -874,20 +874,6 @@ input[type='checkbox'] {
     opacity: 0;
   }
 }
-.jiao-legend {
-  list-style: none;
-  padding: 0;
-  margin: 12px 0 0;
-  font-size: 13.5px;
-  color: var(--ink-2);
-  display: grid;
-  gap: 2px;
-}
-.jiao-legend b {
-  color: var(--ink);
-  font-family: var(--serif);
-  margin-right: 8px;
-}
 .verdict {
   margin-top: 14px;
   padding: 14px;
@@ -1227,10 +1213,69 @@ p.verdict {
 .qian-sec.focus h3 {
   color: var(--red);
 }
-.qian-sec.reminder {
+.qian-sec.personal {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px dashed var(--gold-2);
+}
+/* 卦象：左边画六爻，右边卦名与解读 */
+.gua {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.gua-fig {
+  display: grid;
+  gap: 6px;
+  width: 54px;
+  padding-top: 4px;
+}
+.gua-fig i {
+  display: block;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--red);
+}
+.gua-fig i.yin {
+  background: linear-gradient(90deg, var(--red) 0 40%, transparent 40% 60%, var(--red) 60% 100%);
+}
+.gua-fig i:nth-child(4) {
+  margin-top: 8px; /* 上卦与下卦之间 */
+}
+.gua-body {
+  min-width: 0;
+}
+.gua-body h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 20px;
+  color: var(--ink);
+}
+.gua-body h3 span {
+  flex: none;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  border: 1px solid currentColor;
+  padding: 0 5px 0 7px;
+  border-radius: 6px;
+}
+.gua-parts {
+  margin: 2px 0 6px;
+  font-family: var(--serif);
+  color: var(--ink-2);
+}
+.gua-body p:last-child {
+  margin-bottom: 0;
 }
 .qian-more {
   margin: 10px 0;

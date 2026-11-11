@@ -121,13 +121,3 @@ export function JiaoThrow(props: JiaoThrowProps) {
     </div>
   );
 }
-
-export function JiaoLegend() {
-  return (
-    <ul class="jiao-legend">
-      <li><b>圣筊</b>一平一凸，表示应允</li>
-      <li><b>笑筊</b>两平面朝上，神明笑而不答</li>
-      <li><b>阴筊</b>两凸面朝上，表示不允</li>
-    </ul>
-  );
-}

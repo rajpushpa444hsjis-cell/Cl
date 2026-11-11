@@ -4,8 +4,11 @@
     python3 -I scripts/qian/build.py .cache/qian-sources
 
 輸出：
-    src/data/qian-poems.json   定稿原文（請勿手改，改動請改來源或下方 MANUAL）
+    src/data/qian-poems.json   定稿原文與卦象（請勿手改，改動請改來源或下方 MANUAL）
     docs/籤詩核對報告.md        每一處差異與採用理由
+
+卦象：好廟網、天聖宮各籤印有六個 ○●（○ 陽、● 陰，由上爻往下排，前三個是上卦）；
+另以柿子文化《天上聖母感應靈籤》目錄所印的卦象（如「☵☶」，前上後下）對照。
 """
 import html
 import json
@@ -25,6 +28,16 @@ SOURCES = [
      'url': 'https://donghaimazu.com/fortune-stick/'},
 ]
 SHORT = {'sunfong': '三鳳宮', 'temple01': '好廟網', 'donghai': '天聖宮'}
+
+# 卦象的對照來源：正式出版的籤詩書目錄（60 籤各配一卦，互不重複）
+GUA_BOOK = {'id': 'book', 'name': '柿子文化《天上聖母感應靈籤：六十甲子吉祥籤詩卡》目錄（琅琅悅讀）',
+            'url': 'https://reading.udn.com/udnlib/tAICH/F/239966?tab=content'}
+# 讀法的旁證：民間籤解網站標出的卦名，與書上的卦象一致
+GUA_CHECKS = '「六十甲子籤解 易經六十四卦意」（60chance.blogspot.com）標示：甲寅第二籤＝水山蹇、' \
+             '甲辰第三籤＝天水訟、乙酉第十一籤＝雷水解、己丑第三十一籤＝水火既濟'
+# ○●（由上往下）→ 八卦
+TRIGRAM = {'○○○': '☰', '●○○': '☱', '○●○': '☲', '●●○': '☳',
+           '○○●': '☴', '●○●': '☵', '○●●': '☶', '●●●': '☷'}
 
 # 三家皆不同時的人工裁定：(籤號, 句序 1-4) -> (採用文字, 理由)
 MANUAL = {
@@ -54,6 +67,26 @@ def clean(s: str) -> str:
     return re.sub(r'[，、。,.\s　]', '', s)
 
 
+def to_gua(symbols: str) -> str:
+    """把「●○●　○●●」轉成「☵☶」（上卦在前）。"""
+    p = re.sub(r'[^○●]', '', symbols)
+    if len(p) != 6:
+        raise SystemExit(f'卦象不是六爻：{symbols!r}')
+    return TRIGRAM[p[:3]] + TRIGRAM[p[3:]]
+
+
+def parse_book() -> dict[int, tuple[str, str]]:
+    """籤詩書目錄：第2籤　甲寅．☵☶ … → {2: ('甲寅', '☵☶')}"""
+    out = {}
+    for x in text_lines(SRC / 'book-toc.html'):
+        m = re.match(r'^第(\d+)籤\s*(\S\S)[．.]\s*([☰-☷])\s*([☰-☷])', x)
+        if m:
+            out[int(m.group(1))] = (m.group(2), m.group(3) + m.group(4))
+    if len(out) != 60:
+        raise SystemExit(f'書的目錄只讀到 {len(out)} 籤')
+    return out
+
+
 def parse_sunfong(i):
     L = text_lines(SRC / 'sunfong' / f'{i}.html')
     k = next(k for k, x in enumerate(L) if re.match(r'^第.+籤\s', x))
@@ -65,7 +98,7 @@ def parse_sunfong(i):
 def parse_temple01(i):
     L = text_lines(SRC / 'temple01' / f'{i}.html')
     k = next(k for k, x in enumerate(L) if x == f'第{cn(i)}籤')
-    return {'ganzhi': L[k + 1], 'attr': clean(L[k + 3]),
+    return {'ganzhi': L[k + 1], 'attr': clean(L[k + 3]), 'gua': to_gua(L[k + 2]),
             'lines': [clean(x) for x in L[k + 4:k + 8]]}
 
 
@@ -73,7 +106,7 @@ def parse_donghai(i):
     L = text_lines(SRC / 'donghai' / f'{i}.html')
     k = next(k for k in range(50, len(L)) if re.match(r'^第.+籤【', L[k]))
     gz = re.match(r'^第.+?籤【(.+?)】', L[k]).group(1)
-    return {'ganzhi': gz, 'attr': clean(L[k + 1]),
+    return {'ganzhi': gz, 'attr': clean(L[k + 1]), 'gua': to_gua(L[k].split('】', 1)[1]),
             'lines': [clean(x) for x in L[k + 2:k + 6]]}
 
 
@@ -98,7 +131,8 @@ def fmt_attr(a: str) -> str:
 
 
 def main():
-    poems, report = [], []
+    poems, report, gua_report = [], [], []
+    book = parse_book()
     for i in range(1, 61):
         got = {sid: PARSERS[sid](i) for sid in PARSERS}
         entry = {'no': i}
@@ -129,13 +163,27 @@ def main():
         entry['lines'] = lines
         if variants:
             entry['variants'] = variants
+        # 卦象：以書為準；兩個網站與書不同時記入報告
+        bgz, bgua = book[i]
+        if bgz != entry['ganzhi']:
+            raise SystemExit(f'#{i} 書的干支 {bgz} 與籤頭 {entry["ganzhi"]} 不同')
+        web = {s: got[s]['gua'] for s in ('temple01', 'donghai')}
+        if any(v != bgua for v in web.values()):
+            gua_report.append((i, entry['ganzhi'], web, bgua))
+        entry['gua'] = bgua
         poems.append(entry)
 
     assert len({p['ganzhi'] for p in poems}) == 60
+    # 書上 60 籤的卦互不重複；兩個網站的版本則有重複
+    assert len({p['gua'] for p in poems}) == 60
+    web_all = [PARSERS['temple01'](i)['gua'] for i in range(1, 61)]
+    web_dups = sorted({g for g in web_all if web_all.count(g) > 1})
     data = {
         '_note': '由 scripts/qian/build.py 產生，請勿手改。',
         'method': '三來源逐字比對，兩家以上相同即採用；三家皆異者人工裁定並記錄理由。',
         'sources': SOURCES,
+        'guaMethod': '卦象以籤詩書目錄為準，並與兩個網站所印的卦象逐籤比對；上卦在前、下卦在後。',
+        'guaSource': GUA_BOOK,
         'poems': poems,
     }
     out = ROOT / 'src/data/qian-poems.json'
@@ -159,9 +207,23 @@ def main():
            '|---|---|---|---|---|---|---|']
     for i, f, vals, v, why in report:
         md.append(f'| {i} | {f} | {vals["sunfong"]} | {vals["temple01"]} | {vals["donghai"]} | **{v}** | {why} |')
-    md.append('')
+    md += ['', '## 卦象核對', '',
+           '傳統六十甲子籤每一籤都配有一個卦。好廟網、天聖宮在籤頭印六個 ○●（○ 陽、● 陰），'
+           '另有正式出版的籤詩書在目錄印出卦象：', '',
+           f'- {GUA_BOOK["name"]}：<{GUA_BOOK["url"]}>', '',
+           '**讀法**：把網站的 ○● 由上往下讀、前三個當上卦，換成八卦後，'
+           f'60 籤中有 {60 - len(gua_report)} 籤與書完全相同，可見兩者是同一套配卦、同一種寫法。'
+           f'上卦在前這一點另有旁證：{GUA_CHECKS}。', '',
+           f'**差異**：其餘 {len(gua_report)} 籤，兩個網站彼此相同、但與書不同。採用書的版本，理由是：', '',
+           f'1. 書上 60 籤的卦互不重複；兩個網站的版本有 {len(web_dups)} 個卦各出現兩次'
+           f'（{"、".join(web_dups)}），而且這 {len(gua_report)} 籤的網站版本正好都與另一籤重複，應是抄錄之誤。',
+           '2. 其中乙酉（第 11 籤）、己丑（第 31 籤）兩籤另有旁證，與書一致。', '',
+           '| 籤 | 干支 | 好廟網 | 天聖宮 | 書（採用） |', '|---|---|---|---|---|']
+    for i, gz, web, bgua in gua_report:
+        md.append(f'| {i} | {gz} | {web["temple01"]} | {web["donghai"]} | **{bgua}** |')
+    md += ['', '卦名（如 ☵☶＝水山蹇）由 `scripts/gen-gua.mjs` 依上下卦產生，見 `src/data/gua.json`。', '']
     (ROOT / 'docs/籤詩核對報告.md').write_text('\n'.join(md), encoding='utf-8')
-    print(f'poems: {len(poems)}, diffs: {len(report)}')
+    print(f'poems: {len(poems)}, diffs: {len(report)}, gua diffs: {len(gua_report)}')
 
 
 if __name__ == '__main__':

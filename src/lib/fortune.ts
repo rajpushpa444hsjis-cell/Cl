@@ -34,6 +34,15 @@ export function groupOf(god: TenGod): GodGroup {
   }
 }
 
+/** 另一个五行对“我”是哪一类关系（比劫＝相同，食伤＝我生，财＝我克，官杀＝克我，印＝生我）。 */
+export function elementGroup(me: Element, other: Element): GodGroup {
+  if (other === me) return '比劫';
+  if (generates(me) === other) return '食伤';
+  if (controls(me) === other) return '财';
+  if (controls(other) === me) return '官杀';
+  return '印';
+}
+
 /** 与日主为某种关系的五行。 */
 export function elementOfGroup(me: Element, group: GodGroup): Element {
   switch (group) {
@@ -109,11 +118,4 @@ export function dailyFortune(bazi: Bazi, day: DayInfo, seed: string): DailyFortu
     chong: clashed ? { title: fill(rules.chong.title, vars), text: fill(rules.chong.text, vars) } : null,
     vars,
   };
-}
-
-/** 解签页最后附的一句今日运势提醒。 */
-export function drawReminder(f: DailyFortune): string {
-  let s = fill(rules.drawReminder, f.vars);
-  if (f.chong) s += fill(rules.drawReminderChong, f.vars);
-  return s;
 }

@@ -124,8 +124,5 @@
   "chong": {
     "title": "今日冲{shengxiao}",
     "text": "今日{dayGz}日，冲{chongDesc}。属{shengxiao}的你今天凡事宜缓，重要决定可延后，出门多留意安全。"
-  },
-
-  "drawReminder": "今日是你的{god}日，主题“{theme}”。幸运色{color}、幸运数字{numbers}。",
-  "drawReminderChong": "另外，今日冲{shengxiao}，所问之事不必急于今日定案。"
+  }
 }

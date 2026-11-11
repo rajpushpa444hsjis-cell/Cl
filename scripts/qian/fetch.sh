@@ -17,4 +17,7 @@ for i in $(seq 1 60); do
   curl -sSf --max-time 30 -o "$OUT/donghai/$i.html" "https://donghaimazu.com/post/fortune-sticks/$slug/"
   sleep 0.4
 done
+# 卦象對照：柿子文化《天上聖母感應靈籤》目錄（琅琅悅讀）
+curl -sSf -L --max-time 30 -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36" \
+  -o "$OUT/book-toc.html" "https://reading.udn.com/udnlib/tAICH/F/239966?order=&sort=&tab=content"
 echo "done: $OUT"

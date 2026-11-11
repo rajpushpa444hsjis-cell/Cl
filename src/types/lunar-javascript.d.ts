@@ -32,6 +32,7 @@ declare module 'lunar-javascript' {
     getDayChongDesc(): string;
     getDaySha(): string;
     getJieQi(): string;
+    getJieQiTable(): Record<string, Solar>;
     getEightChar(): EightChar;
   }
   export interface Solar {
@@ -39,6 +40,7 @@ declare module 'lunar-javascript' {
     getMonth(): number;
     getDay(): number;
     getWeek(): number;
+    toYmd(): string;
     getLunar(): Lunar;
   }
   export const Solar: {

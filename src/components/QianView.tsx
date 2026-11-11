@@ -1,4 +1,5 @@
-import { type Advice, GRADE_NOTE, type Qian, cnNumber } from '../lib/qian';
+import type { PersonalLine } from '../lib/personal';
+import { type Advice, type Gua, type Qian, cnNumber } from '../lib/qian';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
 import { GradeSeal } from './ui';
 
@@ -21,7 +22,31 @@ function AdviceRows(props: { a: Advice }) {
   );
 }
 
-export function QianView(props: { qian: Qian; category: CategoryId; reminder?: string; compact?: boolean }) {
+/** 卦象：六爻由上到下画出，阳爻一横、阴爻断开；上下卦之间留空。 */
+function GuaBlock(props: { g: Gua }) {
+  const { g } = props;
+  return (
+    <section class="gua">
+      <div class="gua-fig" role="img" aria-label={`${g.full}卦，上卦${g.upper.name}，下卦${g.lower.name}`}>
+        {g.lines.map((yang, i) => (
+          <i key={i} class={yang ? 'yang' : 'yin'} />
+        ))}
+      </div>
+      <div class="gua-body">
+        <h3>
+          <span>卦象</span>
+          {g.full}
+        </h3>
+        <p class="gua-parts">
+          上{g.upper.name}为{g.upper.image}，下{g.lower.name}为{g.lower.image}
+        </p>
+        <p>{g.note}</p>
+      </div>
+    </section>
+  );
+}
+
+export function QianView(props: { qian: Qian; category: CategoryId; personal?: PersonalLine[]; compact?: boolean }) {
   const { qian: q, category } = props;
   return (
     <article class={`qian-view ${props.compact ? 'compact' : ''}`}>
@@ -53,6 +78,8 @@ export function QianView(props: { qian: Qian; category: CategoryId; reminder?: s
         </div>
       </div>
 
+      <GuaBlock g={q.gua} />
+
       {!props.compact && (
         <section class="qian-sec">
           <h3>逐句解读</h3>
@@ -77,6 +104,20 @@ export function QianView(props: { qian: Qian; category: CategoryId; reminder?: s
         <AdviceRows a={q.advice[category]} />
       </section>
 
+      {props.personal && (
+        <section class="qian-sec personal">
+          <h3>此签与你</h3>
+          <dl class="advice-rows">
+            {props.personal.map((l) => (
+              <div key={l.label}>
+                <dt>{l.label}</dt>
+                <dd>{l.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       {!props.compact && (
         <details class="qian-more">
           <summary>其他类别的建议</summary>
@@ -87,13 +128,6 @@ export function QianView(props: { qian: Qian; category: CategoryId; reminder?: s
             </section>
           ))}
         </details>
-      )}
-
-      {props.reminder && (
-        <section class="qian-sec reminder">
-          <h3>今日运势提醒</h3>
-          <p>{props.reminder}</p>
-        </section>
       )}
 
       {q.variants.length > 0 && !props.compact && (
@@ -111,11 +145,8 @@ export function QianView(props: { qian: Qian; category: CategoryId; reminder?: s
               </li>
             ))}
           </ul>
-          <p class="hint small">原文依三个来源逐字比对、多数决定稿。</p>
         </details>
       )}
-
-      <p class="hint small">{GRADE_NOTE}</p>
     </article>
   );
 }

@@ -12,6 +12,8 @@
 - **今日运势**：公历、农历、日干支、节气、黄历宜忌、冲煞；依今日日干与日主的十神关系给出今日主题与运势句；幸运五行、幸运色、河图幸运数字；今日日支冲生肖时显示提醒；可产生 1080×1350 运势卡片分享或保存图片。
 - **掷筊求签**：问事 → 禀告 → 掷筊请示 → 摇签（摇手机或按住按钮）→ 掷筊确认（一个或连续三个圣筊，可设置）→ 解签。
   - 筊杯每片正反各 50%：圣筊 50%、笑筊 25%、阴筊 25%（`src/lib/jiao.ts`，以 `crypto.getRandomValues` 取乱数）。
+  - 解签内容：签意、签诗、**卦象**（每支签所配的易经卦与解读）、逐句解读、白话解说、所问类别的建议，以及**此签与你**。
+  - “此签与你”不是固定的句子，而是三项组合：签的五行对照你的日主（再依所问类别取句）、签所利的季节对照当下节气（带出实际的换季日期）、签的吉凶对照今天的十神。
 - **签本**：每次求签自动存档（日期、问题、签号、当日干支），可标记应验与否、加备注；可导出／导入 JSON 备份。
 - 动画（签筒摇晃、竹签掉出、筊杯 3D 翻转落地）、Web Audio 合成音效、Android 震动反馈、深色模式。
 
@@ -20,7 +22,7 @@
 ```bash
 npm install
 npm run dev        # 开发伺服器
-npm test           # 单元测试（历法、十神、幸运五行、筊杯机率、签诗资料完整性）
+npm test           # 单元测试（历法、十神、幸运五行、筊杯机率、签诗与卦象资料、此签与你的规则）
 npm run build      # 产生 dist/（静态档，可放到任何 HTTPS 主机）
 npm run preview    # 预览 build 结果
 npm run build:artifact -- 输出.html   # 产生单一 HTML 预览版（JS／CSS 内嵌，无 Service Worker、无摇动侦测）
@@ -33,10 +35,12 @@ npm run build:artifact -- 输出.html   # 产生单一 HTML 预览版（JS／CSS
 | 想改的东西 | 文件 |
 |---|---|
 | 十神主题、运势句、幸运五行规则、五行颜色与数字、冲生肖提醒文字 | `src/data/fortune-rules.json` |
-| 签诗的白话解说、六类建议、吉凶等级 | `src/data/qian-readings.json` |
-| 签诗原文 | `src/data/qian-poems.json`（繁体核对定稿）与 `qian-poems-hans.json`（App 显示用的简体版），皆由脚本产生，请勿手改，见下方 |
+| 签诗的白话解说、逐句解读、卦象解读、六类建议、吉凶等级 | `src/data/qian-readings.json` |
+| 解签页“此签与你”的规则与文字（五行、时令、今日） | `src/data/qian-rules.json` |
+| 签诗原文、各签所配的卦 | `src/data/qian-poems.json`（繁体核对定稿）与 `qian-poems-hans.json`（App 显示用的简体版），皆由脚本产生，请勿手改，见下方 |
+| 八卦与六十四卦对照表 | `src/data/gua.json`（由脚本产生，请勿手改） |
 
-`fortune-rules.json` 的文字可自由修改，`{dayGz}`、`{shengxiao}` 等大括号会自动代入。改完执行 `npm test` 可检查格式。
+`fortune-rules.json`、`qian-rules.json` 的文字可自由修改，`{dayGz}`、`{shengxiao}` 等大括号会自动代入。改完执行 `npm test` 可检查格式。
 
 ## 签诗原文的来源与核对
 
@@ -46,21 +50,24 @@ npm run build:artifact -- 输出.html   # 产生单一 HTML 预览版（JS／CSS
 2. 台湾好庙网・签卦结缘赞
 3. 台东东海龙门天圣宫（庙方官网）
 
-规则：每一栏（干支、属性、四句诗）两家以上相同即采用；三家皆异者人工裁定并写明理由。360 栏中 336 栏三家完全一致，24 栏有差异，逐笔列在 **[docs/签诗核对报告.md](docs/签诗核对报告.md)**；差异也会在 App 解签页的“版本异文”中显示。
+规则：每一栏（干支、属性、四句诗）两家以上相同即采用；三家皆异者人工裁定并写明理由。360 栏中 336 栏三家完全一致，24 栏有差异，逐笔列在 **[docs/籤詩核對報告.md](docs/籤詩核對報告.md)**；差异也会在 App 解签页的“版本异文”中显示。
+
+**卦象**：传统六十甲子签每一签都配有一个卦。各签的卦以柿子文化《天上聖母感應靈籤：六十甲子吉祥籤詩卡》目录所印为准，并与两个网站在签头印的卦象逐签比对：60 签中 54 签三者相同；其余 6 签两个网站与书不同，而网站的版本正好都与另一签重复（书上 60 签互不重复），故采用书的版本。读法（上卦在前）另有旁证。细节同样写在核对报告里。
 
 重新核对：
 
 ```bash
-bash scripts/qian/fetch.sh                 # 下载三个来源到 .cache/qian-sources
-python3 -I scripts/qian/build.py           # 比对并重新产生 qian-poems.json 与核对报告
+bash scripts/qian/fetch.sh                 # 下载三个来源与签诗书目录到 .cache/qian-sources
+python3 -I scripts/qian/build.py           # 比对并重新产生 qian-poems.json（原文与卦象）与核对报告
 node scripts/gen-poems-hans.mjs            # 由繁体定稿转出简体版 qian-poems-hans.json
 ```
 
-白话解说、分类建议与吉凶等级皆为本 App 原创撰写；吉凶等级依诗意与传统签解综合评定，各庙版本不一。
+白话解说、逐句解读、卦象解读、分类建议与吉凶等级皆为本 App 原创撰写；吉凶等级依诗意与传统签解综合评定，各庙版本不一。
 
 ## 其他脚本
 
 - `node scripts/gen-poems-hans.mjs`：以 OpenCC 把繁体核对定稿的签诗转成简体（核对时以三个台湾来源的繁体原文逐字比对，因此定稿保留繁体）。
+- `node scripts/gen-gua.mjs`：由 npm 包 `i-ching` 的卦序、卦名与上下卦产生 `src/data/gua.json`。
 - `node scripts/gen-icons.mjs`：由 `scripts/icon.svg` 产生 PWA 图示（需 Playwright）。
 
 ## 部署（GitHub Pages）

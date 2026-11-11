@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LunarUtil } from 'lunar-javascript';
 import rules from '../src/data/fortune-rules.json';
-import { dailyFortune, drawReminder, luckyElement, tenGod } from '../src/lib/fortune';
+import { dailyFortune, elementGroup, luckyElement, tenGod } from '../src/lib/fortune';
 import { GANS, computeBazi, getDayInfo } from '../src/lib/lunar';
 
 describe('十神', () => {
@@ -23,6 +23,13 @@ describe('幸运五行规则', () => {
   ])('丙日主遇 %s（%s）→ %s', (gan, god, el) => {
     expect(tenGod('丙', gan)).toBe(god);
     expect(luckyElement('丙', gan)).toBe(el);
+  });
+});
+
+describe('五行关系', () => {
+  it('以木为我：木比劫、火食伤、土财、金官杀、水印', () => {
+    expect((['木', '火', '土', '金', '水'] as const).map((e) => elementGroup('木', e)))
+      .toEqual(['比劫', '食伤', '财', '官杀', '印']);
   });
 });
 
@@ -54,7 +61,6 @@ describe('dailyFortune', () => {
     expect(rabbit.shengxiao).toBe('兔');
     const f = dailyFortune(rabbit, day, 'x');
     expect(f.chong?.title).toBe('今日冲兔');
-    expect(drawReminder(f)).toContain('冲兔');
     const horse = computeBazi({ y: 1990, m: 6, d: 1, hour: null });
     expect(dailyFortune(horse, day, 'x').chong).toBeNull();
   });

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { JiaoLegend, JiaoThrow } from '../components/Jiao';
+import { JiaoThrow } from '../components/Jiao';
 import { QianTong } from '../components/QianTong';
 import { QianView } from '../components/QianView';
 import { Footer, Icon, ScreenHeader } from '../components/ui';
 import { playBell, playLow, playRattle, playStickDrop, unlockAudio } from '../lib/audio';
-import { type DailyFortune, drawReminder } from '../lib/fortune';
+import type { DailyFortune } from '../lib/fortune';
 import { vibrate } from '../lib/haptics';
 import { JIAO_LABEL, type JiaoResult, type Toss } from '../lib/jiao';
 import { type Bazi, type DayInfo, HOURS } from '../lib/lunar';
 import { listenShake, motionSupport, requestMotionPermission } from '../lib/motion';
+import { personalReading } from '../lib/personal';
 import { QIAN_COUNT, cnNumber, getQian } from '../lib/qian';
 import { randInt } from '../lib/random';
 import { CATEGORIES, type CategoryId, type JournalEntry, type Profile, type Settings, categoryLabel, newId } from '../lib/storage';
@@ -255,7 +256,6 @@ export function Draw(props: Props) {
               onInput={(e) => setQuestion((e.target as HTMLTextAreaElement).value)}
             />
           </label>
-          <p class="hint">问题越具体越好，一次只问一件事。</p>
           <button class="btn primary big" disabled={!category} onClick={() => { unlockAudio(); go('report'); }}>
             下一步：禀告
           </button>
@@ -278,7 +278,6 @@ export function Draw(props: Props) {
             </p>
             <p>恳请神明慈悲，赐予灵签，指点迷津。</p>
           </div>
-          <p class="hint">请在心中默念以上内容，准备好后掷筊，请示神明是否允许求签。</p>
           <div class="row">
             <button class="btn ghost" onClick={() => go('category')}>
               <Icon name="back" /> 修改
@@ -294,7 +293,6 @@ export function Draw(props: Props) {
         <div class="card">
           <h2 class="card-title">掷筊请示：可否求签？</h2>
           <JiaoThrow onResult={onAsk} label="掷筊" disabled={askResult !== null} />
-          {askResult === null && <JiaoLegend />}
           {askResult === 'sheng' && (
             <div class="verdict good">
               <p><b>圣筊！</b>神明应允，请诚心摇动签筒。</p>
@@ -381,9 +379,8 @@ export function Draw(props: Props) {
       {step === 'result' && qian && category && (
         <>
           <div class="card">
-            <QianView qian={qian} category={category} reminder={drawReminder(props.fortune)} />
+            <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune, category)} />
           </div>
-          <p class="hint center">已自动存入签本，日后可标记是否应验。</p>
           <div class="actions">
             <button class="btn primary big" onClick={props.onOpenJournal}>查看签本</button>
             <button class="btn ghost big" onClick={restart}>再求一签</button>

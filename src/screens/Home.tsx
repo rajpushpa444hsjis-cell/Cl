@@ -131,7 +131,6 @@ export function Home({ profile, bazi, day, fortune: f, onDraw }: Props) {
             <b>{f.numbers.join('・')}</b>
           </div>
         </div>
-        <p class="hint small">{f.summary}</p>
       </div>
 
       <div class="actions">

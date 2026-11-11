@@ -3,7 +3,7 @@ import { ProfileForm } from '../components/ProfileForm';
 import { Footer, ScreenHeader } from '../components/ui';
 import { canVibrate } from '../lib/haptics';
 import { saveFile } from '../lib/platform';
-import { SOURCES } from '../lib/qian';
+import { GRADE_NOTE, GUA_SOURCE, SOURCES } from '../lib/qian';
 import { type Backup, type Profile, type Settings as S, type ThemePref, makeBackup, parseBackup } from '../lib/storage';
 
 interface Props {
@@ -146,14 +146,19 @@ export function Settings(props: Props) {
       <div class="card about">
         <h2 class="card-title">关于</h2>
         <p>
-          历法、干支、黄历宜忌由开源函数库 lunar-javascript 计算。签诗为传统六十甲子签，原文依下列三个来源逐字比对、多数决定稿；白话解说、分类建议与吉凶等级为本 App 撰写。
+          历法、干支、节气、黄历宜忌由开源函数库 lunar-javascript 计算。签诗为传统六十甲子签，原文依下列三个来源逐字比对、多数决定稿：
         </p>
         <ul>
           {SOURCES.map((x) => (
             <li key={x.id}>{x.name}</li>
           ))}
         </ul>
-        <p>运势规则：依今日日干与日主的十神关系判断；官杀、食伤取印，财取比劫，印、比劫取食伤为幸运五行；幸运数字取河图数。</p>
+        <p>各签所配的卦，以{GUA_SOURCE.name}为准，并与上列网站所印的卦象逐签比对。</p>
+        <p>白话解说、逐句与卦象解读、分类建议为本 App 撰写。{GRADE_NOTE}</p>
+        <p>
+          解签页“此签与你”：以签的五行对照你的日主、签所利的季节对照当下节气、签的吉凶对照今天的十神，逐项组合而成。
+        </p>
+        <p>今日运势：依今日日干与日主的十神关系判断；官杀、食伤取印，财取比劫，印、比劫取食伤为幸运五行；幸运数字取河图数。</p>
       </div>
 
       <Footer />
