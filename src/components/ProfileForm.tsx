@@ -74,7 +74,7 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
             </option>
           ))}
         </select>
-        <small class="hint">晚子时（23:00 后）出生，日柱依子初换日算到隔天。</small>
+        {hour === 'zi-late' && <small class="hint">晚子时出生，日柱算到隔天。</small>}
       </label>
 
       {bazi && (
@@ -82,12 +82,10 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
           <div>
             <span class="k">日主</span>
             <b>{bazi.dayMaster}{bazi.element}</b>
-            <small>（{bazi.yang ? '阳' : '阴'}{bazi.element}）</small>
           </div>
           <div>
             <span class="k">生肖</span>
             <b>{bazi.shengxiao}</b>
-            <small>（以立春换年）</small>
           </div>
           <div class="wide">
             <span class="k">四柱</span>

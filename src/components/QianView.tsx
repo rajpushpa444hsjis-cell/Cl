@@ -29,10 +29,7 @@ function GuaBlock(props: { g: Gua }) {
     <section class="gua">
       <GuaFig lines={g.lines} label={`${g.full}卦，上卦${g.upper.name}，下卦${g.lower.name}`} />
       <div class="gua-body">
-        <h3>
-          <span>卦象</span>
-          {g.full}
-        </h3>
+        <h3>{g.full}</h3>
         <p class="gua-parts">
           上{g.upper.name}为{g.upper.image}，下{g.lower.name}为{g.lower.image}
         </p>
@@ -48,7 +45,6 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
     <article class={`qian-view ${props.compact ? 'compact' : ''}`}>
       <header class="qian-head">
         <div>
-          <p class="kicker">六十甲子签</p>
           <h2 class="qian-no">第{cnNumber(q.no)}签</h2>
           <p class="qian-gz">
             <b>{q.ganzhi}</b>　{q.attr}
@@ -57,10 +53,7 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
         <GradeSeal grade={q.grade} />
       </header>
 
-      <p class="qian-key">
-        <span>签意</span>
-        {q.key}
-      </p>
+      <p class="qian-key">{q.key}</p>
 
       {/* 直书：每句一栏、由右至左；逐字排列，不依赖字型的直排支援 */}
       <div class="poem" lang="zh-Hans">

@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'preact/hooks';
 import { GuaFig } from '../components/GuaFig';
-import { Footer, Icon, Modal, ScreenHeader } from '../components/ui';
+import { Footer, Icon, Modal } from '../components/ui';
 import { canShareFiles, renderFortuneCard, shareImage } from '../lib/card';
 import { IS_PREVIEW, saveFile } from '../lib/platform';
 import type { DailyGua } from '../lib/dailyGua';
 import type { DailyFortune } from '../lib/fortune';
-import type { Bazi, DayInfo } from '../lib/lunar';
+import type { DayInfo } from '../lib/lunar';
 import type { Profile } from '../lib/storage';
 
 interface Props {
   profile: Profile;
-  bazi: Bazi;
   day: DayInfo;
   fortune: DailyFortune;
   gua: DailyGua;
   onDraw: () => void;
 }
 
-export function Home({ profile, bazi, day, fortune: f, gua, onDraw }: Props) {
+export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
   const [cardOpen, setCardOpen] = useState(false);
   const [card, setCard] = useState<{ blob: Blob; url: string } | null>(null);
   const [cardErr, setCardErr] = useState('');
@@ -35,8 +34,6 @@ export function Home({ profile, bazi, day, fortune: f, gua, onDraw }: Props) {
         day,
         fortune: f,
         gua,
-        dayMaster: bazi.dayMaster,
-        element: bazi.element,
       });
       setCard((old) => {
         if (old) URL.revokeObjectURL(old.url);
@@ -59,72 +56,59 @@ export function Home({ profile, bazi, day, fortune: f, gua, onDraw }: Props) {
     setMsg(r === 'saved' ? '已保存图片' : r === 'declined' ? '' : '这里无法直接保存，请长按上方图片。');
   };
 
-  const day2 = day.solarText.match(/(\d+)年(\d+)月(\d+)日/)!;
+  const [, , month, date] = day.solarText.match(/(\d+)年(\d+)月(\d+)日/)!;
 
   return (
     <section class="screen-body">
-      <ScreenHeader title="今日运势" sub={`${profile.nickname}，${greeting()}`} />
-
-      <div class="card date-card">
-        <div class="date-big">
-          <span class="d">{day2[3]}</span>
-          <span class="m">{day2[2]}月・{day.weekday}</span>
-          <span class="y">{day2[1]}</span>
-        </div>
-        <div class="date-lunar">
-          <div class="lunar-main">农历{day.lunarText}</div>
-          <div>{day.lunarYearGz}年（{day.lunarYearSx}）</div>
-          <div class="gz">
-            <b>{day.dayGz}日</b>
-            {day.jieqi && <span class="tag gold">{day.jieqi}</span>}
-          </div>
-        </div>
-      </div>
-
-      <div class="card yiji">
-        <div class="yiji-row">
-          <span class="yiji-badge yi">宜</span>
-          <div class="chips">{day.yi.map((w) => <span class="chip" key={w}>{w}</span>)}</div>
-        </div>
-        <div class="yiji-row">
-          <span class="yiji-badge ji">忌</span>
-          <div class="chips">{day.ji.map((w) => <span class="chip" key={w}>{w}</span>)}</div>
-        </div>
-      </div>
+      <header class="cover">
+        <p class="cover-eyebrow">
+          {day.weekday}
+          {day.jieqi && `・${day.jieqi}`}
+        </p>
+        <h1 class="cover-title">{month}月{date}日</h1>
+        <p class="cover-sub">
+          农历{day.lunarText}・{day.lunarYearGz}{day.lunarYearSx}年・{day.dayGz}日
+        </p>
+      </header>
 
       {f.chong && (
-        <div class="card alert" role="note">
-          <Icon name="alert" />
-          <div>
-            <b>{f.chong.title}</b>
-            <p>{f.chong.text}</p>
-          </div>
+        <div class="notice" role="note">
+          <b>{f.chong.title}</b>
+          <p>{f.chong.text}</p>
         </div>
       )}
 
-      <div class="card fortune-card">
-        <div class="fortune-top">
-          <div class="seal" aria-label={`十神：${f.god}`}>
-            <span>{f.god[0]}</span>
-            <span>{f.god[1]}</span>
-          </div>
-          <h2 class="theme">{f.theme}</h2>
-        </div>
-        <p class="fortune-line">{f.line}</p>
+      <div class="card">
+        <p class="eyebrow">{f.god}日</p>
+        <h2 class="theme">{f.theme}</h2>
+        <p>{f.line}</p>
       </div>
 
-      <div class="card daily-gua">
-        <div class="daily-gua-head">
+      <div class="card">
+        <div class="gua-row">
           <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻在第 ${gua.moving} 爻`} />
           <div>
             <h2 class="theme">{gua.full}</h2>
-            <p class="daily-gua-theme">{gua.theme}</p>
+            <p class="lead">{gua.theme}</p>
           </div>
         </div>
         <p>{gua.text}</p>
         <p>{gua.lineText}</p>
         <p>{gua.tiyongText}</p>
         <p>{gua.changeText}</p>
+      </div>
+
+      <div class="card">
+        <dl class="yiji-list">
+          <div>
+            <dt>宜</dt>
+            <dd>{day.yi.join('　')}</dd>
+          </div>
+          <div>
+            <dt>忌</dt>
+            <dd>{day.ji.join('　')}</dd>
+          </div>
+        </dl>
       </div>
 
       <div class="actions">
@@ -158,13 +142,4 @@ export function Home({ profile, bazi, day, fortune: f, gua, onDraw }: Props) {
       </Modal>
     </section>
   );
-}
-
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 5) return '夜深了，早点休息';
-  if (h < 11) return '早安';
-  if (h < 14) return '午安';
-  if (h < 18) return '下午好';
-  return '晚上好';
 }

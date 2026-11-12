@@ -1,17 +1,18 @@
-// 以內建 Chromium 將 scripts/icon.svg 轉成 PWA 圖示。用法：node scripts/gen-icons.mjs
+// 以内建 Chromium 将 scripts/icon.svg 转成 PWA 图示。用法：node scripts/gen-icons.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
-// Playwright 為環境預裝（全域），以 require 載入
+// Playwright 为环境预装（全局），以 require 加载
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const svg = readFileSync(new URL('./icon.svg', import.meta.url), 'utf8');
 const out = (p) => new URL(`../public/${p}`, import.meta.url);
 mkdirSync(out('icons'), { recursive: true });
 
-// 一般圖示：圓角＋金框；maskable：滿版底色、圖案縮進安全區
-const rounded = svg
-  .replace('<rect id="plate" width="512" height="512" fill="url(#bg)"/>',
-    '<rect id="plate" width="512" height="512" rx="112" fill="url(#bg)"/><rect x="30" y="30" width="452" height="452" rx="90" fill="none" stroke="#d4a94e" stroke-width="10"/>');
+// 一般图示：圆角，加一圈极淡的描边（白底图示在白色背景上才看得出轮廓）；maskable：满版底色、图案缩进安全区
+const PLATE = '<rect id="plate" width="512" height="512" fill="#ffffff"/>';
+if (!svg.includes(PLATE)) throw new Error('icon.svg 的底板写法变了，请同步更新这里');
+const rounded = svg.replace(PLATE,
+  '<rect id="plate" x="4" y="4" width="504" height="504" rx="112" fill="#ffffff" stroke="#d2d2d7" stroke-width="4"/>');
 const maskable = svg.replace('<g id="art">', '<g id="art" transform="translate(256 256) scale(.78) translate(-256 -256)">');
 const apple = svg.replace('<g id="art">', '<g id="art" transform="translate(256 256) scale(.9) translate(-256 -256)">');
 

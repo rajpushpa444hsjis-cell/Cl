@@ -224,7 +224,6 @@ export function Draw(props: Props) {
       <ol class="steps" aria-label="求签步骤">
         {STEPS.map((s, i) => (
           <li key={s.id} class={i < stepIdx ? 'done' : i === stepIdx ? 'now' : ''} aria-current={i === stepIdx ? 'step' : undefined}>
-            <span>{i + 1}</span>
             {s.label}
           </li>
         ))}

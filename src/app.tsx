@@ -43,7 +43,7 @@ function applyTheme(pref: S['theme']) {
   } else root.dataset.theme = pref;
   const effective = pref === 'system' ? hostTheme : pref;
   const dark = effective ? effective === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#1b1310' : '#9e2a20');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#000000' : '#ffffff');
 }
 
 export function App() {
@@ -102,14 +102,11 @@ export function App() {
   if (!profile || !bazi || !fortune || !gua) {
     return (
       <div class="app onboarding">
-        <div class="hero">
-          <div class="hero-seal">签</div>
-          <h1>今日一签</h1>
-          <p>每日运势・掷筊求签</p>
-        </div>
+        <header class="cover">
+          <h1 class="cover-title">今日一签</h1>
+          <p class="cover-sub">每日一卦，掷筊求签。先填昵称和生日，之后可以在设置里改。</p>
+        </header>
         <div class="card">
-          <h2 class="card-title">初次见面，先认识你</h2>
-          <p class="hint">输入昵称与生日，就能算出你的日主与生肖，提供每日运势。之后可在设置中修改。</p>
           <ProfileForm
             submitLabel="开始使用"
             onSubmit={(p) => {
@@ -127,7 +124,7 @@ export function App() {
     <div class="app">
       <main>
         <div hidden={tab !== 'home'}>
-          <Home profile={profile} bazi={bazi} day={day} fortune={fortune} gua={gua} onDraw={() => switchTab('draw')} />
+          <Home profile={profile} day={day} fortune={fortune} gua={gua} onDraw={() => switchTab('draw')} />
         </div>
         <div hidden={tab !== 'draw'}>
           <Draw

@@ -1,21 +1,21 @@
 // 今日运势卡片：直接用 Canvas 2D 绘制 1080×1350（4:5），避免 DOM 转图在 iOS 上字型跑掉。
+// 版式与 App 一致：白底、靠左、系统字体，只用墨色、灰色和一个强调色。
 import type { DailyGua } from './dailyGua';
 import type { DailyFortune } from './fortune';
 import type { DayInfo } from './lunar';
 
 const W = 1080;
 const H = 1350;
-const SERIF = '"Noto Serif SC", "Songti SC", "STSong", "SimSun", serif';
-const SANS = '-apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
+const M = 96; // 左右边距
+const SANS = '-apple-system, "SF Pro Text", "PingFang SC", "HarmonyOS Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif';
 
 const C = {
-  paper: '#f6efe2',
-  paper2: '#ecdfc6',
-  ink: '#2b1d14',
-  ink2: '#6b5646',
-  red: '#9e2a20',
-  gold: '#b8892d',
-  line: '#d9c6a3',
+  bg: '#ffffff',
+  ink: '#1d1d1f',
+  ink2: '#6e6e73',
+  ink3: '#86868b',
+  accent: '#e1251b',
+  line: '#e5e5ea',
 };
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
@@ -49,181 +49,109 @@ function fitWords(ctx: CanvasRenderingContext2D, words: string[], maxWidth: numb
   return out;
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
 export interface CardInput {
   nickname: string;
   day: DayInfo;
   fortune: DailyFortune;
   gua: DailyGua;
-  dayMaster: string;
-  element: string;
 }
 
 export async function renderFortuneCard(input: CardInput): Promise<Blob> {
   const { nickname, day, fortune: f, gua } = input;
-  // 网络字型依字元分段加载：先把卡片会用到的字载好，否则 Canvas 会用后备字型
   try {
-    const text = [day.solarText, day.weekday, day.lunarText, day.dayGz, day.jieqi, f.god, f.theme, f.line,
-      gua.full, gua.theme, ...day.yi, ...day.ji, f.chong?.title ?? '', '今日一签农历年月日宜忌凡事宜缓的运势・'].join('');
-    await Promise.all([
-      document.fonts.load(`700 48px "Noto Serif SC"`, text),
-      document.fonts.load(`400 34px "Noto Serif SC"`, text),
-    ]);
-    await document.fonts.ready;
+    await document.fonts?.ready;
   } catch {
-    /* 字型加载失败时用后备字型 */
+    /* 忽略 */
   }
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
-
-  // 底纸
-  const bg = ctx.createRadialGradient(W / 2, H * 0.35, 100, W / 2, H / 2, H * 0.8);
-  bg.addColorStop(0, '#fbf6ec');
-  bg.addColorStop(1, C.paper2);
-  ctx.fillStyle = bg;
+  ctx.fillStyle = C.bg;
   ctx.fillRect(0, 0, W, H);
-
-  // 外框：朱红粗框＋金色细线
-  ctx.strokeStyle = C.red;
-  ctx.lineWidth = 18;
-  ctx.strokeRect(36, 36, W - 72, H - 72);
-  ctx.strokeStyle = C.gold;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(62, 62, W - 124, H - 124);
-
   ctx.textBaseline = 'alphabetic';
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
 
-  // 由上往下排版，y 为目前基线
-  let y = 130;
-  ctx.fillStyle = C.red;
-  ctx.font = `700 44px ${SERIF}`;
-  ctx.fillText('今　日　一　签', W / 2, y);
+  const rule = (y: number) => {
+    ctx.fillStyle = C.line;
+    ctx.fillRect(M, y, W - M * 2, 2);
+  };
 
-  y += 92;
+  // 封面：星期、日期、农历
+  ctx.fillStyle = C.accent;
+  ctx.font = `600 40px ${SANS}`;
+  ctx.fillText(day.jieqi ? `${day.weekday}・${day.jieqi}` : day.weekday, M, 160);
   ctx.fillStyle = C.ink;
-  ctx.font = `700 68px ${SERIF}`;
-  ctx.fillText(`${day.solarText.replace(/^\d+年/, '')}　${day.weekday}`, W / 2, y);
-  y += 56;
+  ctx.font = `700 116px ${SANS}`;
+  ctx.fillText(day.solarText.replace(/^\d+年/, ''), M - 4, 282);
   ctx.fillStyle = C.ink2;
-  ctx.font = `400 34px ${SERIF}`;
-  ctx.fillText(`农历${day.lunarYearGz}年${day.lunarText}・${day.dayGz}日${day.jieqi ? `・${day.jieqi}` : ''}`, W / 2, y);
+  ctx.font = `400 38px ${SANS}`;
+  ctx.fillText(`农历${day.lunarText}・${day.lunarYearGz}${day.lunarYearSx}年・${day.dayGz}日`, M, 346);
+  rule(396);
 
-  y += 38;
-  ctx.strokeStyle = C.line;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(140, y);
-  ctx.lineTo(W - 140, y);
-  ctx.stroke();
-
-  // 十神印章
-  y += 30;
-  const seal = 120;
-  ctx.fillStyle = C.red;
-  roundRect(ctx, W / 2 - seal / 2, y, seal, seal, 14);
-  ctx.fill();
-  ctx.fillStyle = '#fbeedd';
-  ctx.font = `700 48px ${SERIF}`;
-  ctx.fillText(f.god[0], W / 2, y + 54);
-  ctx.fillText(f.god[1], W / 2, y + 106);
-  y += seal;
-
-  // 主题与运势句
-  y += 92;
+  // 十神主题与运势句
+  ctx.fillStyle = C.accent;
+  ctx.font = `600 34px ${SANS}`;
+  ctx.fillText(`${f.god}日`, M, 470);
   ctx.fillStyle = C.ink;
-  ctx.font = `700 76px ${SERIF}`;
-  ctx.fillText(f.theme, W / 2, y);
-  ctx.font = `400 38px ${SERIF}`;
-  const lines = wrap(ctx, f.line, W - 280).slice(0, 3);
-  y += 20;
-  for (const l of lines) {
-    y += 56;
-    ctx.fillText(l, W / 2, y);
+  ctx.font = `700 68px ${SANS}`;
+  ctx.fillText(f.theme, M - 2, 556);
+  ctx.font = `400 40px ${SANS}`;
+  let y = 568;
+  for (const l of wrap(ctx, f.line, W - M * 2).slice(0, 2)) {
+    y += 58;
+    ctx.fillText(l, M, y);
   }
 
-  // 今日一卦：左边画六爻（动爻用金色），右边卦名与主题
-  const top = y + 44;
+  // 今日一卦：左边画六爻（动爻用强调色），右边卦名与主题
+  const top = y + 56;
   const figW = 120;
   const barH = 13;
   const barGap = 11;
-  ctx.font = `700 60px ${SERIF}`;
-  const nameW = ctx.measureText(gua.full).width;
-  ctx.font = `400 36px ${SERIF}`;
-  const textW = Math.max(nameW, ctx.measureText(gua.theme).width);
-  const figX = (W - (figW + 44 + textW)) / 2;
   gua.lines.forEach((yang, i) => {
     const by = top + i * (barH + barGap) + (i >= 3 ? 12 : 0);
-    ctx.fillStyle = gua.moving === 6 - i ? C.gold : C.red;
-    if (yang) ctx.fillRect(figX, by, figW, barH);
+    ctx.fillStyle = gua.moving === 6 - i ? C.accent : C.ink;
+    if (yang) ctx.fillRect(M, by, figW, barH);
     else {
-      ctx.fillRect(figX, by, figW * 0.42, barH);
-      ctx.fillRect(figX + figW * 0.58, by, figW * 0.42, barH);
+      ctx.fillRect(M, by, figW * 0.42, barH);
+      ctx.fillRect(M + figW * 0.58, by, figW * 0.42, barH);
     }
   });
   const figH = 6 * barH + 5 * barGap + 12;
-  ctx.textAlign = 'left';
   ctx.fillStyle = C.ink;
-  ctx.font = `700 60px ${SERIF}`;
-  ctx.fillText(gua.full, figX + figW + 44, top + 62);
+  ctx.font = `700 64px ${SANS}`;
+  ctx.fillText(gua.full, M + figW + 40, top + 64);
   ctx.fillStyle = C.ink2;
-  ctx.font = `400 36px ${SERIF}`;
-  ctx.fillText(gua.theme, figX + figW + 44, top + 118);
-  ctx.textAlign = 'center';
-  y = top + figH;
+  ctx.font = `400 38px ${SANS}`;
+  ctx.fillText(gua.theme, M + figW + 40, top + 122);
+  y = top + figH + 50;
+  rule(y);
 
   // 宜忌：各一行，放不下的以“等”结尾
   y += 70;
-  const yiji: [string, string[], string][] = [
-    ['宜', day.yi, C.gold],
-    ['忌', day.ji, C.red],
-  ];
-  ctx.font = `400 34px ${SERIF}`;
-  for (const [label, words, color] of yiji) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(160, y - 12, 28, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = `700 32px ${SERIF}`;
-    ctx.textAlign = 'center';
-    ctx.fillText(label, 160, y);
-    ctx.textAlign = 'left';
+  for (const [label, words] of [['宜', day.yi], ['忌', day.ji]] as const) {
     ctx.fillStyle = C.ink;
-    ctx.font = `400 34px ${SERIF}`;
-    ctx.fillText(fitWords(ctx, words, W - 360), 210, y);
-    y += 72;
+    ctx.font = `700 38px ${SANS}`;
+    ctx.fillText(label, M, y);
+    ctx.fillStyle = C.ink2;
+    ctx.font = `400 36px ${SANS}`;
+    ctx.fillText(fitWords(ctx, words, W - M * 2 - 76), M + 76, y);
+    y += 66;
   }
 
   // 冲生肖提醒
   if (f.chong) {
-    ctx.fillStyle = 'rgba(158,42,32,0.09)';
-    roundRect(ctx, 130, y - 28, W - 260, 76, 16);
-    ctx.fill();
-    ctx.fillStyle = C.red;
-    ctx.textAlign = 'center';
-    ctx.font = `700 32px ${SERIF}`;
-    ctx.fillText(`${f.chong.title}・凡事宜缓`, W / 2, y + 20);
+    ctx.fillStyle = C.accent;
+    ctx.font = `600 34px ${SANS}`;
+    ctx.fillText(`${f.chong.title}，凡事宜缓`, M, y);
   }
 
-  // 页尾（固定在底部）
-  ctx.textAlign = 'center';
-  ctx.fillStyle = C.ink2;
+  // 页尾
+  ctx.fillStyle = C.ink3;
   ctx.font = `400 28px ${SANS}`;
-  ctx.fillText(`${nickname}（日主${input.dayMaster}${input.element}）的今日运势`, W / 2, H - 126);
-  ctx.font = `400 22px ${SANS}`;
-  ctx.fillText('本结果仅供参考', W / 2, H - 90);
+  ctx.fillText(`${nickname}的今日运势`, M, H - 88);
+  ctx.textAlign = 'right';
+  ctx.fillText('本结果仅供参考', W - M, H - 88);
 
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('卡片产生失败'))), 'image/png'),
