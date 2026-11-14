@@ -377,7 +377,7 @@ export function Draw(props: Props) {
 
       {step === 'result' && qian && category && (
         <>
-          <div class="card">
+          <div class="sheet">
             <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune, category)} />
           </div>
           <div class="actions">

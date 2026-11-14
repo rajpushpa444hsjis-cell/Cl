@@ -3,7 +3,7 @@ export function GuaFig(props: { lines: number[]; label: string; moving?: number 
   return (
     <div class="gua-fig" role="img" aria-label={props.label}>
       {props.lines.map((yang, i) => (
-        <i key={i} class={`${yang ? 'yang' : 'yin'} ${props.moving === 6 - i ? 'moving' : ''}`} />
+        <i key={i} class={`${yang ? 'yang' : 'yin'} ${props.moving === 6 - i ? 'moving' : ''}`} style={{ '--i': i }} />
       ))}
     </div>
   );

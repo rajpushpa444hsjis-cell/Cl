@@ -78,13 +78,13 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
         </div>
       )}
 
-      <div class="card">
+      <section class="sec">
         <p class="eyebrow">{f.god}日</p>
         <h2 class="theme">{f.theme}</h2>
         <p>{f.line}</p>
-      </div>
+      </section>
 
-      <div class="card">
+      <section class="sec">
         <div class="gua-row">
           <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻在第 ${gua.moving} 爻`} />
           <div>
@@ -93,28 +93,28 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
           </div>
         </div>
         <p>{gua.text}</p>
-        <p>{gua.lineText}</p>
-        <p>{gua.tiyongText}</p>
-        <p>{gua.changeText}</p>
-      </div>
+        <p class="soft">{gua.lineText}</p>
+        <p class="soft">{gua.tiyongText}</p>
+        <p class="soft">{gua.changeText}</p>
+      </section>
 
-      <div class="card">
+      <section class="sec">
         <dl class="yiji-list">
           <div>
             <dt>宜</dt>
-            <dd>{day.yi.join('　')}</dd>
+            <dd>{day.yi.map((w) => <span key={w}>{w}</span>)}</dd>
           </div>
           <div>
             <dt>忌</dt>
-            <dd>{day.ji.join('　')}</dd>
+            <dd>{day.ji.map((w) => <span key={w}>{w}</span>)}</dd>
           </div>
         </dl>
-      </div>
+      </section>
 
       <div class="actions">
         <button class="btn primary big" onClick={onDraw}>掷筊求签</button>
-        <button class="btn ghost big" onClick={makeCard}>
-          <Icon name="image" /> 生成今日运势卡片
+        <button class="btn quiet big" onClick={makeCard}>
+          <Icon name="image" size={18} /> 生成今日运势卡片
         </button>
       </div>
 

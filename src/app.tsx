@@ -43,7 +43,7 @@ function applyTheme(pref: S['theme']) {
   } else root.dataset.theme = pref;
   const effective = pref === 'system' ? hostTheme : pref;
   const dark = effective ? effective === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#000000' : '#ffffff');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0f0f10' : '#ffffff');
 }
 
 export function App() {

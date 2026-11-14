@@ -11,12 +11,17 @@ const SANS = '-apple-system, "SF Pro Text", "PingFang SC", "HarmonyOS Sans SC", 
 
 const C = {
   bg: '#ffffff',
-  ink: '#1d1d1f',
-  ink2: '#6e6e73',
-  ink3: '#86868b',
-  accent: '#e1251b',
-  line: '#e5e5ea',
+  ink: '#1f1e1c',
+  ink2: '#6f6b66',
+  ink3: '#8f8a83',
+  accent: '#c8402f',
+  line: '#e9e8e4',
 };
+
+/** 字距：较新的浏览器才支持，不支持就照常绘制。 */
+function tracking(ctx: CanvasRenderingContext2D, px: number) {
+  if ('letterSpacing' in ctx) (ctx as unknown as { letterSpacing: string }).letterSpacing = `${px}px`;
+}
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
@@ -79,76 +84,92 @@ export async function renderFortuneCard(input: CardInput): Promise<Blob> {
 
   // 封面：星期、日期、农历
   ctx.fillStyle = C.accent;
-  ctx.font = `600 40px ${SANS}`;
-  ctx.fillText(day.jieqi ? `${day.weekday}・${day.jieqi}` : day.weekday, M, 160);
+  ctx.font = `500 34px ${SANS}`;
+  tracking(ctx, 7);
+  ctx.fillText(day.jieqi ? `${day.weekday}・${day.jieqi}` : day.weekday, M, 156);
   ctx.fillStyle = C.ink;
-  ctx.font = `700 116px ${SANS}`;
-  ctx.fillText(day.solarText.replace(/^\d+年/, ''), M - 4, 282);
+  ctx.font = `300 124px ${SANS}`;
+  tracking(ctx, 0);
+  ctx.fillText(day.solarText.replace(/^\d+年/, ''), M - 6, 288);
   ctx.fillStyle = C.ink2;
-  ctx.font = `400 38px ${SANS}`;
-  ctx.fillText(`农历${day.lunarText}・${day.lunarYearGz}${day.lunarYearSx}年・${day.dayGz}日`, M, 346);
-  rule(396);
+  ctx.font = `400 34px ${SANS}`;
+  tracking(ctx, 3);
+  ctx.fillText(`农历${day.lunarText}・${day.lunarYearGz}${day.lunarYearSx}年・${day.dayGz}日`, M, 354);
+  rule(410);
 
   // 十神主题与运势句
   ctx.fillStyle = C.accent;
-  ctx.font = `600 34px ${SANS}`;
-  ctx.fillText(`${f.god}日`, M, 470);
+  ctx.font = `500 30px ${SANS}`;
+  tracking(ctx, 6);
+  ctx.fillText(`${f.god}日`, M, 488);
   ctx.fillStyle = C.ink;
-  ctx.font = `700 68px ${SANS}`;
-  ctx.fillText(f.theme, M - 2, 556);
-  ctx.font = `400 40px ${SANS}`;
-  let y = 568;
+  ctx.font = `500 64px ${SANS}`;
+  tracking(ctx, 4);
+  ctx.fillText(f.theme, M - 2, 572);
+  ctx.font = `400 38px ${SANS}`;
+  tracking(ctx, 1);
+  let y = 588;
   for (const l of wrap(ctx, f.line, W - M * 2).slice(0, 2)) {
-    y += 58;
+    y += 60;
     ctx.fillText(l, M, y);
   }
 
   // 今日一卦：左边画六爻（动爻用强调色），右边卦名与主题
-  const top = y + 56;
-  const figW = 120;
-  const barH = 13;
-  const barGap = 11;
+  const top = y + 64;
+  const figW = 108;
+  const barH = 8;
+  const barGap = 15;
+  const bar = (x: number, by: number, w: number) => {
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') ctx.roundRect(x, by, w, barH, barH / 2);
+    else ctx.rect(x, by, w, barH);
+    ctx.fill();
+  };
   gua.lines.forEach((yang, i) => {
-    const by = top + i * (barH + barGap) + (i >= 3 ? 12 : 0);
+    const by = top + i * (barH + barGap) + (i >= 3 ? 14 : 0);
     ctx.fillStyle = gua.moving === 6 - i ? C.accent : C.ink;
-    if (yang) ctx.fillRect(M, by, figW, barH);
+    if (yang) bar(M, by, figW);
     else {
-      ctx.fillRect(M, by, figW * 0.42, barH);
-      ctx.fillRect(M + figW * 0.58, by, figW * 0.42, barH);
+      bar(M, by, figW * 0.41);
+      bar(M + figW * 0.59, by, figW * 0.41);
     }
   });
-  const figH = 6 * barH + 5 * barGap + 12;
+  const figH = 6 * barH + 5 * barGap + 14;
   ctx.fillStyle = C.ink;
-  ctx.font = `700 64px ${SANS}`;
-  ctx.fillText(gua.full, M + figW + 40, top + 64);
+  ctx.font = `500 60px ${SANS}`;
+  tracking(ctx, 4);
+  ctx.fillText(gua.full, M + figW + 44, top + 62);
   ctx.fillStyle = C.ink2;
-  ctx.font = `400 38px ${SANS}`;
-  ctx.fillText(gua.theme, M + figW + 40, top + 122);
-  y = top + figH + 50;
+  ctx.font = `400 34px ${SANS}`;
+  tracking(ctx, 6);
+  ctx.fillText(gua.theme, M + figW + 44, top + 120);
+  y = top + figH + 56;
   rule(y);
 
   // 宜忌：各一行，放不下的以“等”结尾
-  y += 70;
+  y += 74;
+  tracking(ctx, 2);
   for (const [label, words] of [['宜', day.yi], ['忌', day.ji]] as const) {
-    ctx.fillStyle = C.ink;
-    ctx.font = `700 38px ${SANS}`;
+    ctx.fillStyle = label === '宜' ? C.accent : C.ink;
+    ctx.font = `500 38px ${SANS}`;
     ctx.fillText(label, M, y);
     ctx.fillStyle = C.ink2;
-    ctx.font = `400 36px ${SANS}`;
-    ctx.fillText(fitWords(ctx, words, W - M * 2 - 76), M + 76, y);
-    y += 66;
+    ctx.font = `400 34px ${SANS}`;
+    ctx.fillText(fitWords(ctx, words, W - M * 2 - 80), M + 80, y);
+    y += 68;
   }
 
   // 冲生肖提醒
   if (f.chong) {
     ctx.fillStyle = C.accent;
-    ctx.font = `600 34px ${SANS}`;
+    ctx.font = `500 32px ${SANS}`;
     ctx.fillText(`${f.chong.title}，凡事宜缓`, M, y);
   }
 
   // 页尾
   ctx.fillStyle = C.ink3;
-  ctx.font = `400 28px ${SANS}`;
+  ctx.font = `400 26px ${SANS}`;
+  tracking(ctx, 4);
   ctx.fillText(`${nickname}的今日运势`, M, H - 88);
   ctx.textAlign = 'right';
   ctx.fillText('本结果仅供参考', W - M, H - 88);
