@@ -26,7 +26,7 @@ export function Settings(props: Props) {
   const exportData = async () => {
     const blob = new Blob([JSON.stringify(makeBackup(), null, 1)], { type: 'application/json' });
     const d = new Date();
-    const r = await saveFile(blob, `今日一签备份-${d.getFullYear()}${d.getMonth() + 1}${d.getDate()}.json`);
+    const r = await saveFile(blob, `清吉备份-${d.getFullYear()}${d.getMonth() + 1}${d.getDate()}.json`);
     setDataMsg(r === 'saved' ? '已导出备份文件。' : r === 'declined' ? '' : '这里无法保存文件，请改用正式版导出。');
   };
 

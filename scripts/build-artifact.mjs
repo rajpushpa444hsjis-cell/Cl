@@ -1,10 +1,10 @@
 // 产生「预览连结」用的单一 HTML 档（JS／CSS 全部内嵌），供 claude.ai Artifact 发布。
-// 用法：npm run build:artifact [-- 输出路径]（默认 dist-artifact/今日一签.html）
+// 用法：npm run build:artifact [-- 输出路径]（默认 dist-artifact/清吉.html）
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dir = 'dist-artifact';
-const out = process.argv[2] || join(dir, '今日一签.html');
+const out = process.argv[2] || join(dir, '清吉.html');
 const assets = readdirSync(join(dir, 'assets'));
 const pick = (ext) => {
   const f = assets.filter((x) => x.endsWith(ext));
@@ -15,7 +15,7 @@ const css = pick('.css').replace(/<\/style/gi, '<\\/style');
 const js = pick('.js').replace(/<\/script/gi, '<\\/script');
 
 // 平台会自动包上 <!doctype>/<head>/<body>，这里只写页面内容
-const html = `<title>今日一签</title>
+const html = `<title>清吉</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

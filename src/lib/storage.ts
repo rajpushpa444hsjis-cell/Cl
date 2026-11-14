@@ -101,7 +101,7 @@ export function makeBackup(): Backup {
 /** 验证并回传备份内容；格式不符时丢出错误。 */
 export function parseBackup(text: string): Backup {
   const b = JSON.parse(text) as Backup;
-  if (b?.app !== 'jinri-yiqian' || !Array.isArray(b.journal)) throw new Error('不是今日一签的备份文件');
+  if (b?.app !== 'jinri-yiqian' || !Array.isArray(b.journal)) throw new Error('不是清吉的备份文件');
   return b;
 }
 

@@ -2,7 +2,7 @@
   "name": "jinri-yiqian",
   "private": true,
   "version": "1.0.0",
-  "description": "今日一籤：每日運勢與擲筊求籤（僅供娛樂）",
+  "description": "清吉：每日一卦与掷筊求签",
   "type": "module",
   "scripts": {
     "dev": "vite",

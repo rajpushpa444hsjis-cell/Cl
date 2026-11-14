@@ -195,7 +195,7 @@ export async function shareImage(blob: Blob, filename: string): Promise<ShareOut
   const file = new File([blob], filename, { type: 'image/png' });
   if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: '今日一签' });
+      await navigator.share({ files: [file], title: '清吉' });
       return 'shared';
     } catch (e) {
       if ((e as Error).name === 'AbortError') return 'cancelled';

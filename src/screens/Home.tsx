@@ -44,7 +44,7 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
     }
   };
 
-  const filename = `今日一签-${day.key}.png`;
+  const filename = `清吉-${day.key}.png`;
   const share = async () => {
     if (!card) return;
     const r = await shareImage(card.blob, filename);

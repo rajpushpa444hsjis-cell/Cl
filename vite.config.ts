@@ -13,9 +13,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: '今日一签',
-        short_name: '今日一签',
-        description: '每日运势与掷筊求签（仅供娱乐）',
+        name: '清吉',
+        short_name: '清吉',
+        description: '每日一卦，掷筊求签',
         lang: 'zh-CN',
         start_url: '.',
         scope: '.',

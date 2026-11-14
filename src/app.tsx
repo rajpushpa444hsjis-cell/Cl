@@ -103,7 +103,7 @@ export function App() {
     return (
       <div class="app onboarding">
         <header class="cover">
-          <h1 class="cover-title">今日一签</h1>
+          <h1 class="cover-title">清吉</h1>
           <p class="cover-sub">每日一卦，掷筊求签。先填昵称和生日，之后可以在设置里改。</p>
         </header>
         <div class="card">
