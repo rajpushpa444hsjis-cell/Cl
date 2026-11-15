@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { GuaFig } from '../components/GuaFig';
-import { Footer, Icon, Modal } from '../components/ui';
+import { Icon, Modal } from '../components/ui';
 import { canShareFiles, renderFortuneCard, shareImage } from '../lib/card';
 import { IS_PREVIEW, saveFile } from '../lib/platform';
 import type { DailyGua } from '../lib/dailyGua';
@@ -121,8 +121,6 @@ export function Home({ profile, day, fortune: f, gua, drawLabel, onDraw }: Props
           <Icon name="image" size={18} /> 生成今日运势卡片
         </button>
       </div>
-
-      <Footer />
 
       <Modal open={cardOpen} onClose={() => setCardOpen(false)} title="今日运势卡片">
         {cardErr && <p class="err">{cardErr}</p>}

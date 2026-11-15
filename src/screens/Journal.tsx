@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import { QianView } from '../components/QianView';
-import { Footer, GradeSeal, Icon, Modal, ScreenHeader } from '../components/ui';
+import { GradeSeal, Icon, Modal, ScreenHeader } from '../components/ui';
 import { cnNumber, getQian } from '../lib/qian';
 import { type JournalEntry, type Outcome, categoryLabel } from '../lib/storage';
 
@@ -126,7 +126,6 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
         );
       })}
 
-      <Footer />
     </section>
   );
 }

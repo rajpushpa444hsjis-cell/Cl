@@ -1,6 +1,6 @@
 import { useRef, useState } from 'preact/hooks';
 import { ProfileForm } from '../components/ProfileForm';
-import { Footer, ScreenHeader } from '../components/ui';
+import { ScreenHeader } from '../components/ui';
 import { canVibrate } from '../lib/haptics';
 import { saveFile } from '../lib/platform';
 import { type Backup, type Profile, type Settings as S, type ThemePref, makeBackup, parseBackup } from '../lib/storage';
@@ -146,7 +146,6 @@ export function Settings(props: Props) {
         {dataMsg && <p class="hint" role="status">{dataMsg}</p>}
       </div>
 
-      <Footer />
     </section>
   );
 }

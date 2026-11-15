@@ -431,7 +431,8 @@ export function Draw(props: Props) {
         </div>
       )}
 
-      <Footer />
+      {/* “结果仅供参考”只在签文出来的时候放在最下面 */}
+      {step === 'result' && !tied && <Footer />}
     </section>
   );
 }

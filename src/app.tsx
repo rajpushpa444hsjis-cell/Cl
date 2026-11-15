@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ProfileForm } from './components/ProfileForm';
-import { Footer, Icon } from './components/ui';
+import { Icon } from './components/ui';
 import { setSoundEnabled } from './lib/audio';
 import { dailyGua } from './lib/dailyGua';
 import { dailyFortune } from './lib/fortune';
@@ -117,7 +117,6 @@ export function App() {
           />
         </div>
         <p class="aside">资料只存在这部手机里</p>
-        <Footer />
       </div>
     );
   }

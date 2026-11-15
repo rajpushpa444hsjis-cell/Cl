@@ -137,6 +137,7 @@ textarea {
 .screen-body {
   padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
   padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  padding-bottom: 28px; /* 页尾不再有说明文字，留一点底部的空 */
 }
 
 /* 进场：各区块依次轻轻浮现 */
