@@ -500,20 +500,18 @@ input[type='checkbox'] {
 }
 
 /* ===== 首页 ===== */
-.notice {
-  margin-bottom: 30px;
-  padding: 18px 22px;
-  border-radius: var(--radius);
-  background: var(--accent-soft);
-}
-.notice b {
-  color: var(--accent);
-  font-family: var(--display);
-  font-weight: 500;
+.cover-note {
+  /* 今日冲生肖：封面下的一行，不另外框起来 */
+  margin: 14px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
   letter-spacing: 0.06em;
 }
-.notice p {
-  margin: 4px 0 0;
+.cover-note b {
+  margin-right: 0.9em;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.14em;
 }
 .gua-row {
   display: grid;
@@ -674,7 +672,8 @@ input[type='checkbox'] {
 /* ===== 求签：进度 ===== */
 .steps {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
   margin: 0 0 24px;
   padding: 0;
@@ -815,19 +814,24 @@ input[type='checkbox'] {
 }
 .verdict {
   margin-top: 18px;
+  text-align: center;
   animation: rise 0.5s var(--ease) both;
 }
 .verdict p {
   margin: 0 0 16px;
-}
-.verdict b {
-  font-weight: 600;
-}
-.verdict.good b {
-  color: var(--accent);
+  letter-spacing: 0.06em;
 }
 p.verdict {
   margin-bottom: 0;
+  letter-spacing: 0.06em;
+}
+/* 轻轻带过的一句：居中、浅色，不用按钮也不用框 */
+.aside {
+  margin: 14px 0 0;
+  color: var(--ink-3);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  text-align: center;
 }
 
 /* ===== 签筒 ===== */
@@ -918,9 +922,9 @@ p.verdict {
   background: var(--accent);
   transition: width 0.15s ease;
 }
-.shake-card > .btn.ghost {
+.shake-card > .btn.quiet {
   width: 100%;
-  margin-bottom: 8px;
+  margin-top: 4px;
 }
 .stick-card {
   display: flex;
@@ -956,6 +960,128 @@ p.verdict {
 .dots i.on {
   background: var(--accent);
   box-shadow: none;
+}
+
+/* ===== 签柜：一格格抽屉，拉开同号的那一格 ===== */
+.drawers {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 22px;
+}
+.drawer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 0.86;
+  padding: 0 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: transform 0.55s var(--ease), box-shadow 0.55s var(--ease), opacity 0.4s ease;
+}
+.drawer::after {
+  /* 拉手 */
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 14px;
+  height: 2px;
+  margin-left: -7px;
+  border-radius: 1px;
+  background: var(--line-2);
+}
+.drawer span {
+  position: relative;
+}
+.drawer.wrong {
+  animation: nudge 0.36s ease;
+}
+@keyframes nudge {
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+.drawer.open {
+  z-index: 1;
+  transform: translateY(10px);
+  box-shadow: inset 0 0 0 1px var(--accent), 0 16px 24px -16px rgba(0, 0, 0, 0.45);
+}
+.drawer.open::after {
+  background: var(--accent);
+}
+.drawers.done .drawer:not(.open) {
+  opacity: 0.35;
+}
+.drawer .slip {
+  /* 从拉开的抽屉里探出来的签纸 */
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  bottom: 100%;
+  height: 0;
+  border-radius: 2px 2px 0 0;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  opacity: 0;
+  transition: height 0.6s var(--ease) 0.3s, opacity 0.2s ease 0.3s;
+}
+.drawer.open .slip {
+  height: 62%;
+  opacity: 1;
+}
+
+/* ===== 系在架上的凶签 ===== */
+.tied {
+  text-align: center;
+}
+.tied p {
+  margin: 0 0 22px;
+  color: var(--ink-2);
+}
+.knots {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 6px auto 20px;
+  color: var(--ink);
+}
+.knots line {
+  stroke: currentColor;
+  stroke-width: 1.2;
+  opacity: 0.3;
+}
+.knots g path,
+.knots g rect {
+  fill: var(--bg);
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.knots .old {
+  opacity: 0.28;
+}
+.knots .me {
+  animation: tie-on 0.9s var(--ease) both;
+}
+@keyframes tie-on {
+  from {
+    opacity: 0;
+    transform: translate(124px, -14px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(124px, 0);
+  }
 }
 
 /* ===== 解签 ===== */

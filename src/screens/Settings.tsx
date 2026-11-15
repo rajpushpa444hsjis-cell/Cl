@@ -27,7 +27,7 @@ export function Settings(props: Props) {
     const blob = new Blob([JSON.stringify(makeBackup(), null, 1)], { type: 'application/json' });
     const d = new Date();
     const r = await saveFile(blob, `清吉备份-${d.getFullYear()}${d.getMonth() + 1}${d.getDate()}.json`);
-    setDataMsg(r === 'saved' ? '已导出备份文件。' : r === 'declined' ? '' : '这里无法保存文件，请改用正式版导出。');
+    setDataMsg(r === 'saved' ? '已导出' : r === 'declined' ? '' : '这里存不了文件，请到正式版导出');
   };
 
   const importData = async (e: Event) => {
@@ -54,7 +54,7 @@ export function Settings(props: Props) {
           submitLabel="保存个人资料"
           onSubmit={(p) => {
             props.onProfile(p);
-            setSavedMsg('已保存。');
+            setSavedMsg('已保存');
             setTimeout(() => setSavedMsg(''), 2000);
           }}
         />
@@ -64,14 +64,18 @@ export function Settings(props: Props) {
       <div class="card">
         <h2 class="card-title">求签</h2>
         <fieldset class="radio-group">
-          <legend>掷筊确认签支</legend>
+          <legend>取签方式</legend>
           <label>
             <input type="radio" name="cm" checked={s.confirmMode === 1} onChange={() => set({ confirmMode: 1 })} />
-            一个圣筊即可（默认）
+            掷筊确认，一个圣筊
           </label>
           <label>
             <input type="radio" name="cm" checked={s.confirmMode === 3} onChange={() => set({ confirmMode: 3 })} />
-            需连续三个圣筊
+            掷筊确认，连续三个圣筊
+          </label>
+          <label>
+            <input type="radio" name="cm" checked={s.confirmMode === 0} onChange={() => set({ confirmMode: 0 })} />
+            不掷筊，摇到哪支取哪支
           </label>
         </fieldset>
       </div>
@@ -91,18 +95,18 @@ export function Settings(props: Props) {
           <span>音效</span>
           <input type="checkbox" checked={s.sound} onChange={(e) => set({ sound: (e.target as HTMLInputElement).checked })} />
         </label>
-        <label class="switch">
-          <span>
-            震动反馈
-            {!canVibrate() && <small class="hint">（此设备不支持，例如 iPhone）</small>}
-          </span>
-          <input type="checkbox" checked={s.vibrate} onChange={(e) => set({ vibrate: (e.target as HTMLInputElement).checked })} />
-        </label>
+        {/* 不支持震动的设备（例如 iPhone）就不显示这个开关 */}
+        {canVibrate() && (
+          <label class="switch">
+            <span>震动反馈</span>
+            <input type="checkbox" checked={s.vibrate} onChange={(e) => set({ vibrate: (e.target as HTMLInputElement).checked })} />
+          </label>
+        )}
       </div>
 
       <div class="card">
         <h2 class="card-title">数据</h2>
-        <p class="hint">所有数据只保存在本机浏览器。清除浏览器数据会一并删除，建议定期导出备份。</p>
+        <p class="hint">资料只存在这部手机里，换手机前记得导出备份。</p>
         <div class="row">
           <button class="btn ghost" onClick={exportData}>导出备份</button>
           <button class="btn ghost" onClick={() => fileRef.current?.click()}>导入备份</button>
@@ -110,7 +114,7 @@ export function Settings(props: Props) {
         </div>
         {pending && (
           <div class="confirm-box" role="group" aria-label="确认导入">
-            <p>用备份文件替换当前数据？备份内有签本 {pending.journal.length} 笔，当前的数据会被覆盖。</p>
+            <p>用备份里的 {pending.journal.length} 笔签本替换现在的资料？</p>
             <div class="row">
               <button class="btn ghost" onClick={() => setPending(null)}>取消</button>
               <button
@@ -118,7 +122,7 @@ export function Settings(props: Props) {
                 onClick={() => {
                   props.onImport(pending);
                   setPending(null);
-                  setDataMsg('已导入备份。');
+                  setDataMsg('已导入');
                 }}
               >
                 确定导入
@@ -128,7 +132,7 @@ export function Settings(props: Props) {
         )}
         {askClear ? (
           <div class="confirm-box danger" role="group" aria-label="确认清除">
-            <p>清除个人资料、设置与全部签本？此操作无法恢复。</p>
+            <p>清除全部资料与签本？清掉就找不回来了。</p>
             <div class="row">
               <button class="btn ghost" onClick={() => setAskClear(false)}>取消</button>
               <button class="btn primary" onClick={() => props.onClear()}>确定清除</button>

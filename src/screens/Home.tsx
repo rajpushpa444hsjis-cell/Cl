@@ -13,10 +13,11 @@ interface Props {
   day: DayInfo;
   fortune: DailyFortune;
   gua: DailyGua;
+  drawLabel: string;
   onDraw: () => void;
 }
 
-export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
+export function Home({ profile, day, fortune: f, gua, drawLabel, onDraw }: Props) {
   const [cardOpen, setCardOpen] = useState(false);
   const [card, setCard] = useState<{ blob: Blob; url: string } | null>(null);
   const [cardErr, setCardErr] = useState('');
@@ -69,14 +70,13 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
         <p class="cover-sub">
           农历{day.lunarText}・{day.lunarYearGz}{day.lunarYearSx}年・{day.dayGz}日
         </p>
+        {f.chong && (
+          <p class="cover-note" role="note">
+            <b>{f.chong.title}</b>
+            {f.chong.text}
+          </p>
+        )}
       </header>
-
-      {f.chong && (
-        <div class="notice" role="note">
-          <b>{f.chong.title}</b>
-          <p>{f.chong.text}</p>
-        </div>
-      )}
 
       <section class="sec">
         <p class="eyebrow">{f.god}日</p>
@@ -116,7 +116,7 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
       </section>
 
       <div class="actions">
-        <button class="btn primary big" onClick={onDraw}>掷筊求签</button>
+        <button class="btn primary big" onClick={onDraw}>{drawLabel}</button>
         <button class="btn quiet big" onClick={makeCard}>
           <Icon name="image" size={18} /> 生成今日运势卡片
         </button>

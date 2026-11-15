@@ -18,7 +18,7 @@ export interface Profile {
 
 export type ThemePref = 'system' | 'light' | 'dark';
 export interface Settings {
-  confirmMode: 1 | 3; // 掷筊确认：一个圣筊或连续三个圣筊
+  confirmMode: 0 | 1 | 3; // 掷筊确认：一个圣筊或连续三个圣筊；0 为不掷筊，摇到哪支取哪支
   theme: ThemePref;
   sound: boolean;
   vibrate: boolean;

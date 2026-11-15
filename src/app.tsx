@@ -104,7 +104,7 @@ export function App() {
       <div class="app onboarding">
         <header class="cover">
           <h1 class="cover-title">清吉</h1>
-          <p class="cover-sub">每日一卦，掷筊求签。先填昵称和生日，之后可以在设置里改。</p>
+          <p class="cover-sub">每日一卦，掷筊求签</p>
         </header>
         <div class="card">
           <ProfileForm
@@ -115,6 +115,7 @@ export function App() {
             }}
           />
         </div>
+        <p class="aside">资料只存在这部手机里</p>
         <Footer />
       </div>
     );
@@ -124,7 +125,7 @@ export function App() {
     <div class="app">
       <main>
         <div hidden={tab !== 'home'}>
-          <Home profile={profile} day={day} fortune={fortune} gua={gua} onDraw={() => switchTab('draw')} />
+          <Home profile={profile} day={day} fortune={fortune} gua={gua} drawLabel={settings.confirmMode === 0 ? '求签' : '掷筊求签'} onDraw={() => switchTab('draw')} />
         </div>
         <div hidden={tab !== 'draw'}>
           <Draw
@@ -135,6 +136,7 @@ export function App() {
             fortune={fortune}
             settings={settings}
             onSave={(e) => updateJournal([e, ...journal])}
+            onDiscard={(id) => updateJournal(journal.filter((e) => e.id !== id))}
             onOpenJournal={() => switchTab('journal')}
           />
         </div>

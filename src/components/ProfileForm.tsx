@@ -26,7 +26,7 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
   const name = nickname.trim();
   const errors = {
     nickname: !name ? '请输入昵称' : '',
-    date: !parsed ? '请选择 1901–2099 年之间的出生日期' : '',
+    date: !parsed ? '请选一个 1901–2099 年之间的日期' : '',
   };
   const ok = !errors.nickname && !errors.date;
 
@@ -53,7 +53,7 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
       </label>
 
       <label class="field">
-        <span>出生日期（公历）</span>
+        <span>公历生日</span>
         <input
           type="date"
           value={date}
@@ -65,16 +65,16 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
       </label>
 
       <label class="field">
-        <span>出生时辰（可不填）</span>
+        <span>出生时辰</span>
         <select value={hour} onChange={(e) => setHour((e.target as HTMLSelectElement).value as HourKey | '')}>
-          <option value="">不确定／不填</option>
+          <option value="">不确定</option>
           {HOURS.map((h) => (
             <option key={h.key} value={h.key}>
               {h.label}（{h.range}）
             </option>
           ))}
         </select>
-        {hour === 'zi-late' && <small class="hint">晚子时出生，日柱算到隔天。</small>}
+        {hour === 'zi-late' && <small class="hint">晚子时出生，日柱算到隔天</small>}
       </label>
 
       {bazi && (
@@ -100,7 +100,6 @@ export function ProfileForm(props: { initial?: Profile | null; submitLabel: stri
         </div>
       )}
 
-      <p class="hint">数据只保存在这部手机的浏览器里，不会上传。</p>
       <button type="submit" class="btn primary big">{props.submitLabel}</button>
     </form>
   );

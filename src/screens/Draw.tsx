@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { Drawers, Knots } from '../components/Drawers';
 import { JiaoThrow } from '../components/Jiao';
 import { QianTong } from '../components/QianTong';
 import { QianView } from '../components/QianView';
@@ -6,21 +7,22 @@ import { Footer, Icon, ScreenHeader } from '../components/ui';
 import { playBell, playLow, playRattle, playStickDrop, unlockAudio } from '../lib/audio';
 import type { DailyFortune } from '../lib/fortune';
 import { vibrate } from '../lib/haptics';
-import { JIAO_LABEL, type JiaoResult, type Toss } from '../lib/jiao';
+import type { JiaoResult, Toss } from '../lib/jiao';
 import { type Bazi, type DayInfo, HOURS } from '../lib/lunar';
 import { listenShake, motionSupport, requestMotionPermission } from '../lib/motion';
 import { personalReading } from '../lib/personal';
-import { QIAN_COUNT, cnNumber, getQian } from '../lib/qian';
+import { QIAN_COUNT, cnNumber, getQian, gradeTone } from '../lib/qian';
 import { randInt } from '../lib/random';
 import { CATEGORIES, type CategoryId, type JournalEntry, type Profile, type Settings, categoryLabel, newId } from '../lib/storage';
 
-type Step = 'category' | 'report' | 'ask' | 'shake' | 'confirm' | 'result';
+type Step = 'category' | 'report' | 'ask' | 'shake' | 'confirm' | 'drawer' | 'result';
 const STEPS: { id: Step; label: string }[] = [
   { id: 'category', label: '问事' },
   { id: 'report', label: '禀告' },
   { id: 'ask', label: '请示' },
   { id: 'shake', label: '摇签' },
   { id: 'confirm', label: '确认' },
+  { id: 'drawer', label: '取签' },
   { id: 'result', label: '解签' },
 ];
 
@@ -34,6 +36,8 @@ interface Props {
   fortune: DailyFortune;
   settings: Settings;
   onSave: (e: JournalEntry) => void;
+  /** 凶签系在架上、不带走：把刚存进签本的那一笔拿掉。 */
+  onDiscard: (id: string) => void;
   onOpenJournal: () => void;
 }
 
@@ -49,7 +53,10 @@ export function Draw(props: Props) {
   const [confirmCount, setConfirmCount] = useState(0);
   const [confirmFail, setConfirmFail] = useState<JiaoResult | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [tied, setTied] = useState(false);
+  // 掷筊确认要几个圣筊；0 是不掷筊，摇到哪支取哪支
   const needed = settings.confirmMode;
+  const steps = needed === 0 ? STEPS.filter((s) => s.id !== 'ask' && s.id !== 'confirm') : STEPS;
 
   // ---- 摇签 ----
   const support = motionSupport();
@@ -91,9 +98,11 @@ export function Draw(props: Props) {
     }, 880);
   };
 
-  // 只有真的抽出签时才进入确认步骤
+  // 只有真的抽出签时才往下走：要掷筊就去确认，不掷筊就直接去签柜
   const onDropDone = () => {
-    if (dropping.current) go('confirm');
+    if (!dropping.current) return;
+    if (needed === 0) setTimeout(() => go('drawer'), 700);
+    else go('confirm');
   };
 
   // 摇动侦测：只在摇签步骤、且画面在前景时监听
@@ -151,9 +160,8 @@ export function Draw(props: Props) {
       setConfirmCount(c);
       if (c >= needed) {
         setTimeout(() => {
-          playBell();
-          vibrate([40, 60, 120]);
-          go('result');
+          playBell(523);
+          go('drawer');
         }, 900);
       }
     } else {
@@ -172,6 +180,13 @@ export function Draw(props: Props) {
     setDropKey(0);
     setAttempt((a) => a + 1);
     go('shake');
+  };
+
+  // 拉开抽屉，取出签纸
+  const onDrawerOpen = () => {
+    playBell();
+    vibrate([40, 60, 120]);
+    go('result');
   };
 
   // ---- 存入签本 ----
@@ -197,6 +212,15 @@ export function Draw(props: Props) {
     setSavedId(entry.id);
   }, [step]);
 
+  // 凶签系在架上：留在这里，不带回签本
+  const tie = () => {
+    if (savedId) props.onDiscard(savedId);
+    setTied(true);
+    playLow();
+    vibrate(40);
+    requestAnimationFrame(scrollTop);
+  };
+
   const restart = () => {
     setCategory(null);
     setQuestion('');
@@ -205,6 +229,7 @@ export function Draw(props: Props) {
     setConfirmCount(0);
     setConfirmFail(null);
     setSavedId(null);
+    setTied(false);
     setProgress(0);
     energy.current = 0;
     dropping.current = false;
@@ -213,16 +238,16 @@ export function Draw(props: Props) {
     go('category');
   };
 
-  const stepIdx = STEPS.findIndex((s) => s.id === step);
+  const stepIdx = steps.findIndex((s) => s.id === step);
   const hourLabel = profile.birth.hour ? HOURS.find((h) => h.key === profile.birth.hour)?.label : '';
   const qian = qianNo ? getQian(qianNo) : null;
 
   return (
     <section class="screen-body">
       <div ref={topRef} />
-      <ScreenHeader title="掷筊求签" sub="诚心正意，一事一问" />
+      <ScreenHeader title={needed === 0 ? '求签' : '掷筊求签'} sub="诚心正意，一事一问" />
       <ol class="steps" aria-label="求签步骤">
-        {STEPS.map((s, i) => (
+        {steps.map((s, i) => (
           <li key={s.id} class={i < stepIdx ? 'done' : i === stepIdx ? 'now' : ''} aria-current={i === stepIdx ? 'step' : undefined}>
             {s.label}
           </li>
@@ -231,7 +256,7 @@ export function Draw(props: Props) {
 
       {step === 'category' && (
         <div class="card">
-          <h2 class="card-title">想请示哪一方面？</h2>
+          <h2 class="card-title">想问哪一方面？</h2>
           <div class="cat-grid" role="radiogroup" aria-label="问事类别">
             {CATEGORIES.map((c) => (
               <button
@@ -246,17 +271,17 @@ export function Draw(props: Props) {
             ))}
           </div>
           <label class="field">
-            <span>想问的事（可不填）</span>
+            <span>想问的事</span>
             <textarea
               rows={3}
               maxLength={100}
               value={question}
-              placeholder="例如：这份新工作适合我吗？"
+              placeholder="写下来，或在心里默念"
               onInput={(e) => setQuestion((e.target as HTMLTextAreaElement).value)}
             />
           </label>
           <button class="btn primary big" disabled={!category} onClick={() => { unlockAudio(); go('report'); }}>
-            下一步：禀告
+            下一步
           </button>
         </div>
       )}
@@ -269,11 +294,11 @@ export function Draw(props: Props) {
             <p>
               公历{profile.birth.y}年{profile.birth.m}月{profile.birth.d}日{hourLabel ? `${hourLabel}` : ''}生
               <br />
-              （农历{bazi.lunarBirth}，属{bazi.shengxiao}）
+              农历{bazi.lunarBirth}，属{bazi.shengxiao}
             </p>
             <p>今日{day.solarText}，{day.dayGz}日，诚心祈求指点：</p>
             <p class="ask">
-              【{categoryLabel(category)}】{question.trim() || '（心中默念所问之事）'}
+              【{categoryLabel(category)}】{question.trim() || '心中所问之事'}
             </p>
             <p>恳请神明慈悲，赐予灵签，指点迷津。</p>
           </div>
@@ -281,8 +306,14 @@ export function Draw(props: Props) {
             <button class="btn ghost" onClick={() => go('category')}>
               <Icon name="back" /> 修改
             </button>
-            <button class="btn primary" onClick={() => { setAskResult(null); go('ask'); }}>
-              禀告完毕，掷筊请示
+            <button
+              class="btn primary"
+              onClick={() => {
+                setAskResult(null);
+                go(needed === 0 ? 'shake' : 'ask');
+              }}
+            >
+              {needed === 0 ? '摇签' : '掷筊请示'}
             </button>
           </div>
         </div>
@@ -290,23 +321,17 @@ export function Draw(props: Props) {
 
       {step === 'ask' && (
         <div class="card">
-          <h2 class="card-title">掷筊请示：可否求签？</h2>
+          <h2 class="card-title">可否求签？</h2>
           <JiaoThrow onResult={onAsk} label="掷筊" disabled={askResult !== null} />
           {askResult === 'sheng' && (
-            <div class="verdict good">
-              <p><b>圣筊！</b>神明应允，请诚心摇动签筒。</p>
+            <div class="verdict">
+              <p>神明应允。</p>
               <button class="btn primary big" onClick={() => go('shake')}>开始摇签</button>
             </div>
           )}
           {askResult && askResult !== 'sheng' && (
-            <div class="verdict bad">
-              <p>
-                <b>{JIAO_LABEL[askResult]}。</b>
-                {askResult === 'xiao'
-                  ? '神明笑而不答，可能问题还不够明确。'
-                  : '神明尚未应允，请再想想心中所问之事。'}
-                请换个问法再试一次。
-              </p>
+            <div class="verdict">
+              <p>{askResult === 'xiao' ? '神明笑而不答，换个问法再问。' : '神明未允，想清楚了再问。'}</p>
               <button class="btn primary big" onClick={() => { setAskResult(null); go('category'); }}>
                 换个问法
               </button>
@@ -323,15 +348,6 @@ export function Draw(props: Props) {
           {step === 'shake' && (
             <>
               <div class="meter" aria-hidden="true"><i style={{ width: `${progress * 100}%` }} /></div>
-              {support === 'needs-permission' && !motionOn && (
-                <button class="btn ghost" onClick={enableMotion}>
-                  <Icon name="phone" /> 启用“摇一摇”
-                </button>
-              )}
-              {permDenied && <p class="hint center">未取得动作感测权限，请改用下方按钮。</p>}
-              <p class="hint center">
-                {motionOn && motionActive ? '握紧手机上下摇动，或按住下方按钮' : '按住下方按钮摇动签筒'}
-              </p>
               <button
                 class="btn primary big hold"
                 onPointerDown={startHold}
@@ -342,6 +358,14 @@ export function Draw(props: Props) {
               >
                 按住摇签
               </button>
+              {/* 摇手机是另一种摇法：能用时轻轻带一句，需要授权时给一个不抢眼的入口 */}
+              {support === 'needs-permission' && !motionOn && !permDenied && (
+                <button class="btn quiet big" onClick={enableMotion}>
+                  <Icon name="phone" size={18} /> 改用摇一摇
+                </button>
+              )}
+              {motionOn && motionActive && <p class="aside">也可以直接摇手机</p>}
+              {permDenied && <p class="aside">没有取得动作权限，按住按钮就好</p>}
             </>
           )}
 
@@ -351,22 +375,17 @@ export function Draw(props: Props) {
                 <span class="stick-no">第{cnNumber(qian.no)}签</span>
                 <span class="stick-gz">{qian.ganzhi}</span>
               </div>
-              <p class="hint center">
-                {needed === 1 ? '掷出一个圣筊，即是神明所赐之签。' : `需连续掷出三个圣筊，才算数。`}
-              </p>
               {needed > 1 && (
-                <div class="dots" aria-label={`已掷出 ${confirmCount} 个圣筊`}>
+                <div class="dots" aria-label={`已掷出 ${confirmCount} 个圣筊，需要 ${needed} 个`}>
                   {Array.from({ length: needed }, (_, i) => <i key={i} class={i < confirmCount ? 'on' : ''} />)}
                 </div>
               )}
               <JiaoThrow key={`c${attempt}`} onResult={onConfirm} disabled={confirmFail !== null || confirmCount >= needed} label={confirmCount ? `再掷（第 ${confirmCount + 1} 次）` : '掷筊确认'} />
-              {confirmCount >= needed && <p class="verdict good center"><b>圣筊！</b>就是这支签。</p>}
+              {confirmCount === 0 && !confirmFail && <p class="aside">{needed === 1 ? '掷出圣筊，才是这一支' : '连续三个圣筊，才是这一支'}</p>}
+              {confirmCount >= needed && <p class="verdict center">就是这一支。</p>}
               {confirmFail && (
-                <div class="verdict bad">
-                  <p>
-                    <b>{JIAO_LABEL[confirmFail]}。</b>
-                    这支签不是神明要给的，请放回签筒重新抽一支。
-                  </p>
+                <div class="verdict">
+                  <p>不是这一支。</p>
                   <button class="btn primary big" onClick={putBack}>放回签筒重抽</button>
                 </div>
               )}
@@ -375,7 +394,19 @@ export function Draw(props: Props) {
         </div>
       )}
 
-      {step === 'result' && qian && category && (
+      {step === 'drawer' && qian && (
+        <div class="card">
+          <h2 class="card-title">取签</h2>
+          <div class="stick-card">
+            <span class="stick-no">第{cnNumber(qian.no)}签</span>
+            <span class="stick-gz">{qian.ganzhi}</span>
+          </div>
+          <p class="aside">拉开同号的抽屉</p>
+          <Drawers key={`d${attempt}`} no={qian.no} total={QIAN_COUNT} onOpen={onDrawerOpen} />
+        </div>
+      )}
+
+      {step === 'result' && qian && category && !tied && (
         <>
           <div class="sheet">
             <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune)} />
@@ -383,8 +414,20 @@ export function Draw(props: Props) {
           <div class="actions">
             <button class="btn primary big" onClick={props.onOpenJournal}>查看签本</button>
             <button class="btn ghost big" onClick={restart}>再求一签</button>
+            {gradeTone(qian.grade) === 'bad' && (
+              <button class="btn quiet big" onClick={tie}>系在架上，不带走</button>
+            )}
           </div>
         </>
+      )}
+
+      {step === 'result' && tied && (
+        <div class="card tied">
+          <Knots />
+          <h2 class="card-title">系好了</h2>
+          <p>凶签留在这里，不带回去。往后谨慎些，事情会转。</p>
+          <button class="btn primary big" onClick={restart}>再求一签</button>
+        </div>
       )}
 
       <Footer />
