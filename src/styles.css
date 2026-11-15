@@ -1384,6 +1384,66 @@ p.verdict {
   justify-content: flex-end;
 }
 
+/* ===== 签本／签架 的切换，与签架 ===== */
+.seg.two {
+  grid-template-columns: repeat(2, 1fr);
+  margin: 0 0 22px;
+}
+.rack {
+  padding: 6px 0 10px;
+}
+.rack-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  justify-items: center;
+  min-height: 84px;
+  margin-bottom: 18px;
+}
+.rack-row::before {
+  /* 绳 */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 15px;
+  height: 1px;
+  background: var(--line-2);
+}
+.rack-knot {
+  position: relative;
+  width: 44px;
+  height: 84px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+  transform-origin: 50% 15px;
+  transition: transform 0.4s var(--ease);
+  animation: rise 0.5s var(--ease) both;
+}
+.rack-knot:active {
+  transform: rotate(-5deg);
+}
+.rack-knot svg {
+  display: block;
+  width: 40px;
+  height: 80px;
+  margin: 0 auto;
+}
+.rack-knot path,
+.rack-knot rect {
+  fill: var(--bg);
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.confirm-inline.center {
+  justify-content: center;
+  min-height: 52px;
+}
+
 /* ===== 对话框 ===== */
 .modal-backdrop {
   position: fixed;

@@ -36,9 +36,9 @@ interface Props {
   fortune: DailyFortune;
   settings: Settings;
   onSave: (e: JournalEntry) => void;
-  /** 凶签系在架上、不带走：把刚存进签本的那一笔拿掉。 */
-  onDiscard: (id: string) => void;
-  onOpenJournal: () => void;
+  /** 凶签系在架上、不带走：这一笔不列在签本，改放到签架。 */
+  onTie: (id: string) => void;
+  onOpenJournal: (view: 'book' | 'rack') => void;
 }
 
 export function Draw(props: Props) {
@@ -212,9 +212,9 @@ export function Draw(props: Props) {
     setSavedId(entry.id);
   }, [step]);
 
-  // 凶签系在架上：留在这里，不带回签本
+  // 凶签系在架上：留在签架，不带回签本
   const tie = () => {
-    if (savedId) props.onDiscard(savedId);
+    if (savedId) props.onTie(savedId);
     setTied(true);
     playLow();
     vibrate(40);
@@ -276,7 +276,7 @@ export function Draw(props: Props) {
               rows={3}
               maxLength={100}
               value={question}
-              placeholder="写下来，或在心里默念"
+              placeholder={CATEGORIES.find((c) => c.id === category)?.ask ? `例如：${CATEGORIES.find((c) => c.id === category)!.ask}` : '写下来，或在心里默念'}
               onInput={(e) => setQuestion((e.target as HTMLTextAreaElement).value)}
             />
           </label>
@@ -412,7 +412,7 @@ export function Draw(props: Props) {
             <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune)} />
           </div>
           <div class="actions">
-            <button class="btn primary big" onClick={props.onOpenJournal}>查看签本</button>
+            <button class="btn primary big" onClick={() => props.onOpenJournal('book')}>查看签本</button>
             <button class="btn ghost big" onClick={restart}>再求一签</button>
             {gradeTone(qian.grade) === 'bad' && (
               <button class="btn quiet big" onClick={tie}>系在架上，不带走</button>
@@ -425,8 +425,9 @@ export function Draw(props: Props) {
         <div class="card tied">
           <Knots />
           <h2 class="card-title">系好了</h2>
-          <p>凶签留在这里，不带回去。往后谨慎些，事情会转。</p>
+          <p>凶签留在签架上，不带回去。往后谨慎些，事情会转。</p>
           <button class="btn primary big" onClick={restart}>再求一签</button>
+          <button class="btn quiet big" onClick={() => props.onOpenJournal('rack')}>去看签架</button>
         </div>
       )}
 

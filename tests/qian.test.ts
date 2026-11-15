@@ -25,7 +25,7 @@ describe('六十甲子签资料', () => {
     expect(poems.poems.map((p) => p.ganzhi)).toEqual(expected);
   });
 
-  it('每首都有吉凶、签意、白话、逐句解读与六类建议（现况／建议／留意）', () => {
+  it('每首都有吉凶、签意、白话、逐句解读与十二类建议（现况／建议／留意）', () => {
     for (let i = 1; i <= 60; i++) {
       const q = getQian(i);
       expect(readings.grades).toContain(q.grade);
@@ -86,7 +86,8 @@ describe('六十甲子签资料', () => {
         seen.set(t, i);
       }
     }
-    expect(seen.size).toBe(60 * 18 + 60 * 5 + 47 * 3 + 13);
+    expect(CATEGORIES).toHaveLength(12);
+    expect(seen.size).toBe(60 * 36 + 60 * 5 + 47 * 3 + 13);
   });
 
   it('简体版与繁体核对定稿逐首对应', () => {

@@ -51,6 +51,7 @@ export function App() {
   const [settings, setSettings] = useState<S>(loadSettings);
   const [journal, setJournal] = useState<JournalEntry[]>(loadJournal);
   const [tab, setTab] = useState<Tab>('home');
+  const [journalView, setJournalView] = useState<'book' | 'rack'>('book');
   const [now, setNow] = useState(() => new Date());
 
   // 主题、音效、震动
@@ -136,13 +137,18 @@ export function App() {
             fortune={fortune}
             settings={settings}
             onSave={(e) => updateJournal([e, ...journal])}
-            onDiscard={(id) => updateJournal(journal.filter((e) => e.id !== id))}
-            onOpenJournal={() => switchTab('journal')}
+            onTie={(id) => updateJournal(journal.map((e) => (e.id === id ? { ...e, tied: true } : e)))}
+            onOpenJournal={(view) => {
+              setJournalView(view);
+              switchTab('journal');
+            }}
           />
         </div>
         {tab === 'journal' && (
           <Journal
             journal={journal}
+            view={journalView}
+            onView={setJournalView}
             onUpdate={(id, patch) => updateJournal(journal.map((e) => (e.id === id ? { ...e, ...patch } : e)))}
             onDelete={(id) => updateJournal(journal.filter((e) => e.id !== id))}
             onDraw={() => switchTab('draw')}
