@@ -1,6 +1,7 @@
 import poems from '../data/qian-poems-hans.json';
 import readings from '../data/qian-readings.json';
 import { type GuaBase, guaOf } from './gua';
+import type { GodGroup } from './fortune';
 import type { Element, Season } from './lunar';
 import type { CategoryId } from './storage';
 
@@ -33,9 +34,14 @@ export interface Qian {
   lineNotes: string[]; // 逐句诗意，与 lines 一一对应
   gua: Gua;
   advice: Record<CategoryId, Advice>;
+  you: Record<GodGroup, string>; // “此签与你”：这支签的五行对求签人的日主是哪种关系，各写一段
+  when: When; // “此签与你”：这支签所利的季节对照当下
 }
 
-type Reading = { grade: Grade; key: string; plain: string; lines: string[]; gua: string; advice: Record<CategoryId, Advice> };
+/** 利春夏秋冬的签有三段（当令／未到／已过，日期以 {start}、{end} 等代入）；利年的签只有“四季”一段。 */
+export type When = { 当令: string; 未到: string; 已过: string } | { 四季: string };
+
+type Reading = Pick<Qian, 'grade' | 'key' | 'plain' | 'advice' | 'you' | 'when'> & { lines: string[]; gua: string };
 export function getQian(no: number): Qian {
   const p = poems.poems[no - 1];
   const r = (readings.readings as Record<string, Reading>)[String(no)];
@@ -56,6 +62,8 @@ export function getQian(no: number): Qian {
     lineNotes: r.lines,
     gua: { ...guaOf(p.gua), note: r.gua },
     advice: r.advice,
+    you: r.you,
+    when: r.when,
   };
 }
 

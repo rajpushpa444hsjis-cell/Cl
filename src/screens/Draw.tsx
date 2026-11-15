@@ -378,7 +378,7 @@ export function Draw(props: Props) {
       {step === 'result' && qian && category && (
         <>
           <div class="sheet">
-            <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune, category)} />
+            <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune)} />
           </div>
           <div class="actions">
             <button class="btn primary big" onClick={props.onOpenJournal}>查看签本</button>
