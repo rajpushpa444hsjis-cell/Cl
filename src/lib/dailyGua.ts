@@ -6,9 +6,13 @@
 //   动爻 ＝（今年年支序数 ＋ 农历月 ＋ 农历日 ＋ 生日数）÷ 6 的余数（由下往上数）
 //   余数为 0 时，上下卦作 8、动爻作 6。
 // 上下卦分别跟着天干、地支走，两者步调不同，所以同一个人一年会走遍六十四卦，一周内不重复。
-// 动爻所在的一卦为“用”，另一卦为“体”，再看体用的五行生克。文字全部在 src/data/daily-gua.json。
+//
+// 读法：本卦看今天的大势；动爻取《周易》该爻的爻辞原文（src/data/yao.json，由脚本自维基文库取出）配一句白话；
+// 动爻所在的一卦为“用”，另一卦为“体”，看体用的五行生克；动爻阴阳互换得变卦，看事情的走向。
+// 白话全部在 src/data/daily-gua.json：六十四卦各一段、三百八十四爻各一句、体用六十四组、变卦走向六十四句。
 import data from '../data/daily-gua.json';
-import { elementGroup, fill } from './fortune';
+import yaoData from '../data/yao.json';
+import { elementGroup } from './fortune';
 import { type GuaBase, type Trigram, XIANTIAN, guaOf, guaOfLines } from './gua';
 import { type Birth, lunarNumbers } from './lunar';
 
@@ -18,7 +22,8 @@ export interface DailyGua extends GuaBase {
   theme: string;
   text: string;
   moving: number; // 动爻，1–6，由下往上
-  lineText: string;
+  /** 动爻：爻题（如“九三”）、《周易》爻辞原文、白话。 */
+  yao: { label: string; text: string; reading: string };
   ti: Trigram;
   yong: Trigram;
   relation: TiYong;
@@ -27,7 +32,10 @@ export interface DailyGua extends GuaBase {
   changeText: string;
 }
 
-const HEX = data.hexagrams as Record<string, { theme: string; text: string }>;
+type HexText = { theme: string; text: string; to: string; yao: string[] };
+const HEX = data.hexagrams as Record<string, HexText>;
+const TIYONG = data.tiyong as Record<string, string>;
+const YAO = yaoData.hexagrams as Record<string, { judgment: string; lines: { label: string; text: string }[] }>;
 const mod = (n: number, m: number) => n % m || m;
 
 export function dailyGua(birth: Birth, dayKey: string): DailyGua {
@@ -51,20 +59,20 @@ export function dailyGua(birth: Birth, dayKey: string): DailyGua {
   const flipped = [...base.lines];
   flipped[6 - moving] ^= 1;
   const changed = guaOfLines(flipped);
-  const changedTheme = HEX[changed.no].theme;
 
-  const vars = { ti: ti.name, tiEl: ti.element, yong: yong.name, yongEl: yong.element };
+  const h = HEX[base.no];
+  const line = YAO[base.no].lines[moving - 1];
   return {
     ...base,
-    theme: HEX[base.no].theme,
-    text: HEX[base.no].text,
+    theme: h.theme,
+    text: h.text,
     moving,
-    lineText: (data.lines as Record<string, string>)[moving],
+    yao: { label: line.label, text: line.text, reading: h.yao[moving - 1] },
     ti,
     yong,
     relation,
-    tiyongText: fill(data.tiyong.head + data.tiyong[relation], vars),
-    changed: { ...changed, theme: changedTheme },
-    changeText: fill(data.change, { full: changed.full, theme: changedTheme }),
+    tiyongText: TIYONG[ti.name + yong.name],
+    changed: { ...changed, theme: HEX[changed.no].theme },
+    changeText: `变卦${changed.full}：${HEX[changed.no].to}`,
   };
 }

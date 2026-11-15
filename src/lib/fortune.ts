@@ -43,7 +43,7 @@ export function elementGroup(me: Element, other: Element): GodGroup {
   return '印';
 }
 
-/** 字串杂凑（FNV-1a），让同一天、同一人看到的运势句固定。 */
+/** 字串杂凑（FNV-1a）。 */
 export function hash(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {
@@ -70,7 +70,10 @@ export interface DailyFortune {
 export function dailyFortune(bazi: Bazi, day: DayInfo, seed: string): DailyFortune {
   const god = tenGod(bazi.dayMaster, day.dayGan);
   const g = (rules.tenGods as Record<TenGod, { theme: string; summary: string; lines: string[] }>)[god];
-  const line = g.lines[hash(`${day.key}|${seed}`) % g.lines.length];
+  // 日干十天一轮，同一个十神正好每十天轮到一次：按轮到的次数依序取句，全部用过才重复；seed 只决定各人从哪一句起
+  const [y, m, d] = day.key.split('-').map(Number);
+  const turn = Math.floor(Date.UTC(y, m - 1, d) / 864e5 / 10);
+  const line = g.lines[(turn + hash(seed)) % g.lines.length];
   const vars: Record<string, string> = {
     dayGz: day.dayGz,
     god,

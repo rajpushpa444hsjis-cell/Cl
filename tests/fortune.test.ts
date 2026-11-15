@@ -20,13 +20,15 @@ describe('五行关系', () => {
 });
 
 describe('规则表完整性', () => {
-  it('十个十神都有主题与至少一句运势', () => {
+  it('十个十神都有主题与八句运势，八十句没有重复', () => {
     const gods = Object.keys(rules.tenGods);
     expect(gods).toHaveLength(10);
     for (const g of Object.values(rules.tenGods)) {
       expect(g.theme).toBeTruthy();
-      expect(g.lines.length).toBeGreaterThan(0);
+      expect(g.lines).toHaveLength(8);
     }
+    const all = Object.values(rules.tenGods).flatMap((g) => g.lines);
+    expect(new Set(all).size).toBe(80);
   });
 });
 
@@ -35,6 +37,19 @@ describe('dailyFortune', () => {
   it('同一天同一人结果固定', () => {
     const bz = computeBazi({ y: 1990, m: 6, d: 15, hour: null });
     expect(dailyFortune(bz, day, 'a').line).toBe(dailyFortune(bz, day, 'a').line);
+  });
+  it('同一个十神每十天轮到一次，八十天内的运势句不重复', () => {
+    const bz = computeBazi({ y: 1990, m: 6, d: 15, hour: null });
+    const seen = new Map<string, string[]>();
+    for (let i = 0; i < 80; i++) {
+      const f = dailyFortune(bz, getDayInfo(new Date(2026, 10, 7 + i)), '小安|1990615');
+      seen.set(f.god, [...(seen.get(f.god) ?? []), f.line]);
+    }
+    expect(seen.size).toBe(10);
+    for (const [god, lines] of seen) {
+      expect(lines, god).toHaveLength(8);
+      expect(new Set(lines).size, god).toBe(8);
+    }
   });
   it('日支冲生肖时显示提醒', () => {
     const rabbit = computeBazi({ y: 1999, m: 6, d: 1, hour: null }); // 己卯年

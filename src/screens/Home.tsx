@@ -86,14 +86,18 @@ export function Home({ profile, day, fortune: f, gua, onDraw }: Props) {
 
       <section class="sec">
         <div class="gua-row">
-          <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻在第 ${gua.moving} 爻`} />
+          <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻${gua.yao.label}`} />
           <div>
             <h2 class="theme">{gua.full}</h2>
             <p class="lead">{gua.theme}</p>
           </div>
         </div>
         <p>{gua.text}</p>
-        <p class="soft">{gua.lineText}</p>
+        <p class="yao" lang="zh-Hans">
+          <b>{gua.yao.label}</b>
+          {gua.yao.text}
+        </p>
+        <p>{gua.yao.reading}</p>
         <p class="soft">{gua.tiyongText}</p>
         <p class="soft">{gua.changeText}</p>
       </section>

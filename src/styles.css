@@ -522,6 +522,21 @@ input[type='checkbox'] {
   align-items: center;
   margin-bottom: 20px;
 }
+.sec .yao {
+  /* 动爻的爻辞原文：宋体，左侧一道朱砂细线 */
+  margin: 22px 0 14px;
+  padding-left: 16px;
+  border-left: 2px solid var(--accent);
+  font-family: var(--verse);
+  font-size: 19px;
+  line-height: 1.75;
+  letter-spacing: 0.08em;
+}
+.sec .yao b {
+  margin-right: 0.8em;
+  color: var(--accent);
+  font-weight: 600;
+}
 .yiji-list {
   margin: 0;
 }

@@ -1,25 +1,81 @@
 import { describe, expect, it } from 'vitest';
 import data from '../src/data/daily-gua.json';
 import guaData from '../src/data/gua.json';
+import yaoData from '../src/data/yao.json';
 import { dailyGua } from '../src/lib/dailyGua';
+import { elementGroup } from '../src/lib/fortune';
 import { guaOf, guaOfLines } from '../src/lib/gua';
-import { type Birth, dateKey, lunarNumbers } from '../src/lib/lunar';
+import { type Birth, type Element, dateKey, lunarNumbers } from '../src/lib/lunar';
 
 const A: Birth = { y: 1990, m: 3, d: 8, hour: null };
 const B: Birth = { y: 1985, m: 7, d: 20, hour: null };
 
+type Hex = { theme: string; text: string; to: string; yao: string[] };
+const HEX = data.hexagrams as Record<string, Hex>;
+const YAO = yaoData.hexagrams as Record<string, { judgment: string; lines: { label: string; text: string }[] }>;
+const byNo = Object.fromEntries(Object.keys(guaData.hexagrams).map((key) => [guaOf(key).no, guaOf(key)]));
+const POS = ['初', '二', '三', '四', '五', '上'];
+/** 第 n 爻（由下往上，1 起）应有的爻题：阳爻称九、阴爻称六。 */
+function labelOf(lines: number[], n: number) {
+  const nine = lines[6 - n] === 1 ? '九' : '六';
+  return n === 1 ? `初${nine}` : n === 6 ? `上${nine}` : `${nine}${POS[n - 1]}`;
+}
+
 describe('今日一卦：文字表完整', () => {
-  it('六十四卦都有四字左右的主题与解读', () => {
+  it('六十四卦都有主题、解读、变卦走向与六爻白话', () => {
     for (let n = 1; n <= 64; n++) {
-      const h = (data.hexagrams as Record<string, { theme: string; text: string }>)[n];
+      const h = HEX[n];
       expect(h, `第 ${n} 卦`).toBeTruthy();
       expect(h.theme.length).toBeGreaterThanOrEqual(4);
       expect(h.text.length).toBeGreaterThan(20);
+      expect(h.to.length).toBeGreaterThan(8);
+      expect(h.yao).toHaveLength(6);
+      for (const t of h.yao) expect(t.length, `第 ${n} 卦：${t}`).toBeGreaterThan(14);
     }
   });
-  it('六个爻位、五种体用关系都有文字', () => {
-    for (let n = 1; n <= 6; n++) expect((data.lines as Record<string, string>)[n]).toBeTruthy();
-    for (const k of ['用生体', '比和', '体克用', '体生用', '用克体'] as const) expect(data.tiyong[k]).toBeTruthy();
+
+  it('《周易》原文：六十四卦各六爻，爻题的九、六与卦画逐爻相符', () => {
+    for (let n = 1; n <= 64; n++) {
+      const y = YAO[n];
+      expect(y.judgment.length, `第 ${n} 卦卦辞`).toBeGreaterThan(1);
+      expect(y.lines.map((l) => l.label), `第 ${n} 卦`).toEqual([1, 2, 3, 4, 5, 6].map((k) => labelOf(byNo[n].lines, k)));
+      for (const l of y.lines) {
+        expect(l.text.length).toBeGreaterThan(1);
+        expect(l.text, `第 ${n} 卦 ${l.label}`).not.toMatch(/[{}|<>[\]A-Za-z]/);
+      }
+    }
+    // 抽几句对一对
+    expect(YAO[1].lines[0]).toEqual({ label: '初九', text: '潜龙勿用。' });
+    expect(YAO[2].lines[0].text).toBe('履霜，坚冰至。');
+    expect(YAO[21].lines[3].text).toContain('噬干胏'); // 乾（干肉）不是卦名的乾
+    expect(YAO[1].lines[2].text).toContain('终日乾乾');
+  });
+
+  it('体用六十四组：开头写明两卦所象，五行生克写对', () => {
+    const tri = Object.values(guaData.trigrams);
+    expect(Object.keys(data.tiyong)).toHaveLength(64);
+    for (const ti of tri) for (const yong of tri) {
+      const t = (data.tiyong as Record<string, string>)[ti.name + yong.name];
+      expect(t, ti.name + yong.name).toMatch(new RegExp(`^${ti.image}为体，${yong.image}为用，`));
+      const g = elementGroup(ti.element as Element, yong.element as Element);
+      const fact = {
+        比劫: `同属${ti.element}`,
+        印: `${yong.element}生${ti.element}`,
+        食伤: `${ti.element}生${yong.element}`,
+        财: `${ti.element}克${yong.element}`,
+        官杀: `${yong.element}克${ti.element}`,
+      }[g];
+      expect(t, ti.name + yong.name).toContain(`，${fact}：`);
+    }
+  });
+
+  it('所有句子没有一句重复', () => {
+    const all = [
+      ...Object.values(HEX).flatMap((h) => [h.text, h.to, ...h.yao]),
+      ...Object.values(data.tiyong as Record<string, string>),
+    ];
+    expect(all).toHaveLength(64 * 8 + 64);
+    expect(new Set(all).size).toBe(all.length);
   });
 });
 
@@ -39,8 +95,14 @@ describe('起卦', () => {
     expect(g.moving).toBe(5);
     // 动爻在上卦：上卦离（火）为用，下卦乾（金）为体；火克金＝用克体
     expect([g.ti.name, g.yong.name, g.relation]).toEqual(['乾', '离', '用克体']);
+    // 动爻取大有卦六五的爻辞原文
+    expect(g.yao.label).toBe('六五');
+    expect(g.yao.text).toBe('厥孚交如，威如；吉。');
+    expect(g.yao.reading).toBe(HEX[14].yao[4]);
+    expect(g.tiyongText).toMatch(/^天为体，火为用，火克金：/);
     // 五爻由阴变阳：火天大有 → 乾为天
     expect(g.changed.full).toBe('乾为天');
+    expect(g.changeText).toBe(`变卦乾为天：${HEX[1].to}`);
   });
 
   it('同一人同一天固定；换一天或换一个人就不同', () => {
@@ -54,8 +116,9 @@ describe('起卦', () => {
     expect(mine.filter((g, i) => g.full === theirs[i].full && g.moving === theirs[i].moving).length).toBeLessThan(5);
   });
 
-  it('一整年每天都起得出卦，变卦与本卦只差动爻一爻，文字没有未代入的大括号', () => {
+  it('一整年每天都起得出卦，变卦与本卦只差动爻一爻，爻题与动爻相符', () => {
     const seen = new Set<number>();
+    const readings = new Set<string>();
     for (let i = 0; i < 366; i++) {
       const g = dailyGua(A, dateKey(new Date(2026, 0, 1 + i)));
       seen.add(g.no);
@@ -63,9 +126,15 @@ describe('起卦', () => {
       expect(g.moving).toBeLessThanOrEqual(6);
       const diff = g.lines.map((v, k) => (v !== g.changed.lines[k] ? 6 - k : 0)).filter(Boolean);
       expect(diff).toEqual([g.moving]);
-      for (const t of [g.theme, g.text, g.lineText, g.tiyongText, g.changeText]) expect(t).not.toMatch(/[{}]|undefined/);
+      expect(g.yao.label).toBe(labelOf(g.lines, g.moving));
+      readings.add(g.yao.reading);
+      for (const t of [g.theme, g.text, g.yao.text, g.yao.reading, g.tiyongText, g.changeText]) {
+        expect(t.length).toBeGreaterThan(1);
+        expect(t).not.toMatch(/[{}]|undefined/);
+      }
     }
     expect(seen.size).toBe(64); // 一年内走遍六十四卦
+    expect(readings.size).toBeGreaterThan(150); // 动爻的白话一年里有一百多种，不再是六句轮流
   });
 });
 
