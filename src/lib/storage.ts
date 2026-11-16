@@ -3,20 +3,20 @@ import type { Birth } from './lunar';
 export type CategoryId =
   | 'career' | 'love' | 'wealth' | 'health' | 'study' | 'family'
   | 'social' | 'travel' | 'home' | 'lost' | 'news' | 'other';
-/** 问事的类别。ask 是一句示例问法，选了类别之后显示在输入框里，给不知道怎么问的人起个头。 */
-export const CATEGORIES: { id: CategoryId; label: string; ask: string }[] = [
-  { id: 'career', label: '事业', ask: '该不该接下这份新工作？' },
-  { id: 'love', label: '感情', ask: '我和他还有可能吗？' },
-  { id: 'wealth', label: '财运', ask: '这笔钱该不该投进去？' },
-  { id: 'health', label: '健康', ask: '最近的身体要留意什么？' },
-  { id: 'study', label: '学业', ask: '这次考试过得了吗？' },
-  { id: 'family', label: '家庭', ask: '这件事要怎么跟家里人说？' },
-  { id: 'social', label: '人际', ask: '这个人值得深交吗？' },
-  { id: 'travel', label: '出行', ask: '下个月这一趟去得成吗？' },
-  { id: 'home', label: '搬迁', ask: '该不该搬到新的地方？' },
-  { id: 'lost', label: '失物', ask: '丢的东西找得回来吗？' },
-  { id: 'news', label: '等消息', ask: '他什么时候会回我？' },
-  { id: 'other', label: '其他', ask: '' },
+/** 问事的类别。asks 是几个现成的问法，选了类别之后列出来，点一个就填好；也可以自己写。 */
+export const CATEGORIES: { id: CategoryId; label: string; asks: string[] }[] = [
+  { id: 'career', label: '事业', asks: ['该不该接下这份新工作？', '现在适合换工作吗？', '这次升迁轮得到我吗？', '想自己出来做，时机到了吗？', '和主管的关系要怎么处理？'] },
+  { id: 'love', label: '感情', asks: ['我和他还有可能吗？', '这段感情该不该继续？', '什么时候会遇到合适的人？', '该不该主动表白？', '我们适合结婚吗？'] },
+  { id: 'wealth', label: '财运', asks: ['这笔钱该不该投进去？', '今年的财运怎么样？', '借出去的钱要得回来吗？', '这门生意做得起来吗？', '合伙做这件事可靠吗？'] },
+  { id: 'health', label: '健康', asks: ['最近的身体要留意什么？', '这阵子的不舒服会好转吗？', '家人的身体会平安吗？', '要怎么调养比较好？', '该不该去做个检查？'] },
+  { id: 'study', label: '学业', asks: ['这次考试过得了吗？', '这个志愿选得对吗？', '要不要再考一次？', '适合出国读书吗？', '现在的读法对吗？'] },
+  { id: 'family', label: '家庭', asks: ['这件事要怎么跟家里人说？', '和父母的关系会好转吗？', '孩子的事该怎么安排？', '家里最近会平安吗？', '该不该搬回去和家人住？'] },
+  { id: 'social', label: '人际', asks: ['这个人值得深交吗？', '和朋友的误会解得开吗？', '同事是不是在针对我？', '这次合作的对象可靠吗？', '该不该跟他把话说开？'] },
+  { id: 'travel', label: '出行', asks: ['下个月这一趟去得成吗？', '这次出门会平安吗？', '适合去外地发展吗？', '该不该出国？', '这趟行程要改期吗？'] },
+  { id: 'home', label: '搬迁', asks: ['该不该搬到新的地方？', '这间房子适合买吗？', '现在适合换房子吗？', '搬家之后会比较顺吗？', '该续租还是另外找？'] },
+  { id: 'lost', label: '失物', asks: ['丢的东西找得回来吗？', '东西是掉在家里还是外面？', '该往哪个方向找？', '是被人拿走了吗？', '还要继续找吗？'] },
+  { id: 'news', label: '等消息', asks: ['他什么时候会回我？', '面试的结果会是好的吗？', '申请的事批得下来吗？', '等的那个人会回来吗？', '还要再等下去吗？'] },
+  { id: 'other', label: '其他', asks: ['这件事该不该做？', '现在是做这件事的时机吗？', '眼前的难关过得去吗？', '我的决定是对的吗？', '接下来该往哪个方向走？'] },
 ];
 export const categoryLabel = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)?.label ?? '其他';
 

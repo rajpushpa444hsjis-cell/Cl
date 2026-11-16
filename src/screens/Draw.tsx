@@ -54,6 +54,7 @@ export function Draw(props: Props) {
   const [confirmFail, setConfirmFail] = useState<JiaoResult | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [tied, setTied] = useState(false);
+  const [picking, setPicking] = useState(true); // 问事这一步：true 在选类别，false 在选问法
   // 掷筊确认要几个圣筊；0 是不掷筊，摇到哪支取哪支
   const needed = settings.confirmMode;
   const steps = needed === 0 ? STEPS.filter((s) => s.id !== 'ask' && s.id !== 'confirm') : STEPS;
@@ -78,9 +79,17 @@ export function Draw(props: Props) {
   const go = (s: Step) => {
     setStep(s);
     requestAnimationFrame(() => {
-      if (s === 'category' || s === 'result') scrollTop();
+      if ((s === 'category' && !category) || s === 'result') scrollTop();
       else stepsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  };
+
+  // 选了类别就进到问法那一屏；换了类别，原先点选的现成问法不再适用
+  const pickCategory = (id: CategoryId) => {
+    if (id !== category && CATEGORIES.some((c) => c.asks.includes(question))) setQuestion('');
+    setCategory(id);
+    setPicking(false);
+    requestAnimationFrame(() => stepsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   const addEnergy = (n: number) => {
@@ -228,6 +237,7 @@ export function Draw(props: Props) {
   };
 
   const restart = () => {
+    setPicking(true);
     setCategory(null);
     setQuestion('');
     setAskResult(null);
@@ -260,7 +270,8 @@ export function Draw(props: Props) {
         ))}
       </ol>
 
-      {step === 'category' && (
+      {/* 问事分两屏：先选类别，再选一个现成的问法或自己写。每一屏都不必往下滑 */}
+      {step === 'category' && (picking || !category) && (
         <div class="card">
           <h2 class="card-title">想问哪一方面？</h2>
           <div class="cat-grid" role="radiogroup" aria-label="问事类别">
@@ -270,23 +281,42 @@ export function Draw(props: Props) {
                 role="radio"
                 aria-checked={category === c.id}
                 class={`cat ${category === c.id ? 'on' : ''}`}
-                onClick={() => setCategory(c.id)}
+                onClick={() => pickCategory(c.id)}
               >
                 {c.label}
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {step === 'category' && !picking && category && (
+        <div class="card">
+          {/* 标题与“回去换类别”放在同一行，省下一行的高度 */}
+          <div class="ask-head">
+            <h2 class="card-title">想问什么？</h2>
+            <button class="link back" aria-label={`${categoryLabel(category)}，换一个类别`} onClick={() => setPicking(true)}>
+              <Icon name="back" size={16} /> {categoryLabel(category)}
+            </button>
+          </div>
+          <div class="ask-list" role="radiogroup" aria-label="现成的问法">
+            {(CATEGORIES.find((c) => c.id === category)?.asks ?? []).map((a) => (
+              <button key={a} role="radio" aria-checked={question === a} class={`ask ${question === a ? 'on' : ''}`} onClick={() => setQuestion(question === a ? '' : a)}>
+                {a}
+              </button>
+            ))}
+          </div>
           <label class="field">
-            <span>想问的事</span>
             <textarea
-              rows={3}
+              rows={question.length > 17 ? 2 : 1}
               maxLength={100}
               value={question}
-              placeholder={CATEGORIES.find((c) => c.id === category)?.ask ? `例如：${CATEGORIES.find((c) => c.id === category)!.ask}` : '写下来，或在心里默念'}
+              aria-label="想问的事"
+              placeholder="也可以自己写，或在心里默念"
               onInput={(e) => setQuestion((e.target as HTMLTextAreaElement).value)}
             />
           </label>
-          <button class="btn primary big" disabled={!category} onClick={() => { unlockAudio(); go('report'); }}>
+          <button class="btn primary big" onClick={() => { unlockAudio(); go('report'); }}>
             下一步
           </button>
         </div>
