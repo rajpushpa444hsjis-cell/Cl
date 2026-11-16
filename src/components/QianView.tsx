@@ -88,6 +88,17 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
         <p>{q.plain}</p>
       </section>
 
+      {!props.compact && (
+        <section class="qian-sec story">
+          <h3>典故</h3>
+          <p class="story-title">
+            <b>{q.story.title}</b>
+            <span>{q.story.kind}</span>
+          </p>
+          <p>{q.story.text}</p>
+        </section>
+      )}
+
       <section class="qian-sec focus">
         <h3>所问【{categoryLabel(category)}】</h3>
         <AdviceRows a={q.advice[category]} />

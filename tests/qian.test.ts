@@ -90,6 +90,24 @@ describe('六十甲子签资料', () => {
     expect(seen.size).toBe(60 * 36 + 60 * 5 + 47 * 3 + 13);
   });
 
+  it('每支签都有典故：标明史事、传说或小说，史事注明出处，题目不重复', () => {
+    const titles = new Set<string>();
+    let history = 0;
+    for (let i = 1; i <= 60; i++) {
+      const s = getQian(i).story;
+      expect(['史事', '传说', '小说'], `第 ${i} 签`).toContain(s.kind);
+      expect(s.title.length).toBeGreaterThan(3);
+      expect(s.text.length, `第 ${i} 签`).toBeGreaterThan(60);
+      if (s.kind === '史事') {
+        history++;
+        expect(s.text, `第 ${i} 签`).toMatch(/见《|题为《/);
+      }
+      titles.add(s.title);
+    }
+    expect(titles.size).toBe(60);
+    expect(history).toBeGreaterThan(45);
+  });
+
   it('简体版与繁体核对定稿逐首对应', () => {
     expect(poems.poems).toHaveLength(poemsHant.poems.length);
     poems.poems.forEach((p, i) => {

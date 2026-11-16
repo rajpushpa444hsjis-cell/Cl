@@ -97,7 +97,8 @@ export function JiaoThrow(props: JiaoThrowProps) {
 
   return (
     <div class="jiao-throw">
-      <div class="jiao-stage" aria-live="polite">
+      {/* 点筊杯所在的这一块也能掷，不必非按下面的按钮 */}
+      <div class={`jiao-stage ${props.disabled || busy ? '' : 'ready'}`} aria-live="polite" onClick={go}>
         <div class="jiao-floor" />
         <div class="jiao-slot" ref={left}>
           <Block mirror />

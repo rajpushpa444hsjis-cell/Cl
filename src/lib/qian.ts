@@ -34,14 +34,25 @@ export interface Qian {
   lineNotes: string[]; // 逐句诗意，与 lines 一一对应
   gua: Gua;
   advice: Record<CategoryId, Advice>;
+  story: Story; // 典故
   you: Record<GodGroup, string>; // “此签与你”：这支签的五行对求签人的日主是哪种关系，各写一段
   when: When; // “此签与你”：这支签所利的季节对照当下
+}
+
+/**
+ * 典故。title 取自庙方签解在该签下所列的故事题目；kind 标明它是史书有载的事、民间传说，还是小说戏曲的情节；
+ * text 是本 App 撰写的说明，史事注明所依据的史书。
+ */
+export interface Story {
+  title: string;
+  kind: '史事' | '传说' | '小说';
+  text: string;
 }
 
 /** 利春夏秋冬的签有三段（当令／未到／已过，日期以 {start}、{end} 等代入）；利年的签只有“四季”一段。 */
 export type When = { 当令: string; 未到: string; 已过: string } | { 四季: string };
 
-type Reading = Pick<Qian, 'grade' | 'key' | 'plain' | 'advice' | 'you' | 'when'> & { lines: string[]; gua: string };
+type Reading = Pick<Qian, 'grade' | 'key' | 'plain' | 'advice' | 'story' | 'you' | 'when'> & { lines: string[]; gua: string };
 export function getQian(no: number): Qian {
   const p = poems.poems[no - 1];
   const r = (readings.readings as Record<string, Reading>)[String(no)];
@@ -62,6 +73,7 @@ export function getQian(no: number): Qian {
     lineNotes: r.lines,
     gua: { ...guaOf(p.gua), note: r.gua },
     advice: r.advice,
+    story: r.story,
     you: r.you,
     when: r.when,
   };

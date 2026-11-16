@@ -672,6 +672,8 @@ input[type='checkbox'] {
 
 /* ===== 求签：进度 ===== */
 .steps {
+  /* 换步骤时卷到这里：上方留一点空，别贴着屏幕边 */
+  scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 18px);
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
@@ -724,7 +726,7 @@ input[type='checkbox'] {
   letter-spacing: 0.04em;
 }
 .report-text p {
-  margin: 0 0 12px;
+  margin: 0 0 7px; /* 收紧一些，小屏幕上“掷筊请示”才不会掉到画面外 */
 }
 .report-text b {
   font-weight: 600;
@@ -741,6 +743,9 @@ input[type='checkbox'] {
   margin: 0 -22px 12px;
   perspective: 700px;
   overflow: hidden;
+}
+.jiao-stage.ready {
+  cursor: pointer;
 }
 .jiao-floor {
   display: none;
@@ -961,6 +966,26 @@ p.verdict {
 .dots i.on {
   background: var(--accent);
   box-shadow: none;
+}
+
+/* ===== 典故 ===== */
+.story-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.story-title b {
+  font-family: var(--verse);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.story-title span {
+  flex: none;
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 0.14em;
 }
 
 /* ===== 签柜：一格格抽屉，拉开同号的那一格 ===== */

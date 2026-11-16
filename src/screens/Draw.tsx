@@ -70,11 +70,17 @@ export function Draw(props: Props) {
   const shakeOff = useRef<number>();
   const holdTimer = useRef<number>();
   const topRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLOListElement>(null);
 
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // 中间的步骤把进度条卷到画面最上方，让标题让出位置，这一步的按钮不必再往下滑才看得到；
+  // 头尾两步（问事、解签）回到页首
   const go = (s: Step) => {
     setStep(s);
-    requestAnimationFrame(scrollTop);
+    requestAnimationFrame(() => {
+      if (s === 'category' || s === 'result') scrollTop();
+      else stepsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const addEnergy = (n: number) => {
@@ -246,7 +252,7 @@ export function Draw(props: Props) {
     <section class="screen-body">
       <div ref={topRef} />
       <ScreenHeader title={needed === 0 ? '求签' : '掷筊求签'} sub="诚心正意，一事一问" />
-      <ol class="steps" aria-label="求签步骤">
+      <ol class="steps" aria-label="求签步骤" ref={stepsRef}>
         {steps.map((s, i) => (
           <li key={s.id} class={i < stepIdx ? 'done' : i === stepIdx ? 'now' : ''} aria-current={i === stepIdx ? 'step' : undefined}>
             {s.label}
@@ -343,7 +349,8 @@ export function Draw(props: Props) {
       {(step === 'shake' || step === 'confirm') && (
         <div class="card shake-card">
           <h2 class="card-title">{step === 'shake' ? '摇动签筒' : '掷筊确认'}</h2>
-          <QianTong key={attempt} shaking={shaking} dropKey={dropKey} onDropDone={onDropDone} />
+          {/* 签筒只在摇签时出现；掷筊确认时让出位置，筊杯和按钮才在一屏之内 */}
+          {step === 'shake' && <QianTong key={attempt} shaking={shaking} dropKey={dropKey} onDropDone={onDropDone} />}
 
           {step === 'shake' && (
             <>
