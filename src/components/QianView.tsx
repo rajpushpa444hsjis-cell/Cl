@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { PersonalLine } from '../lib/personal';
 import { type Advice, type Gua, type Qian, cnNumber } from '../lib/qian';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
@@ -20,6 +21,57 @@ function AdviceRows(props: { a: Advice }) {
         <dd>{props.a.note}</dd>
       </div>
     </dl>
+  );
+}
+
+/**
+ * 各方面：一张签同时回答十二个方面，每个方面一句短语，一眼看完；点任何一格再展开那个方面的现况、建议、留意。
+ * 做法参考贵船神社的水占签纸：一张纸上列着各个方面，字是浮在水面上才慢慢显出来的，这里在卷到这一节时让字依次浮现。
+ */
+function Aspects(props: { qian: Qian; asked: CategoryId }) {
+  const [open, setOpen] = useState<CategoryId | null>(null);
+  const [shown, setShown] = useState(false);
+  const ref = useRef<HTMLElement>(null);
+  const detail = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return setShown(true);
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setShown(true), { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const toggle = (id: CategoryId) => {
+    const next = open === id ? null : id;
+    setOpen(next);
+    if (next) requestAnimationFrame(() => detail.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  };
+
+  return (
+    <section class={`qian-sec aspects ${shown ? 'shown' : ''}`} ref={ref}>
+      <h3>各方面</h3>
+      <div class="aspect-grid">
+        {CATEGORIES.map((c, i) => (
+          <button
+            key={c.id}
+            class={`aspect ${c.id === props.asked ? 'asked' : ''} ${open === c.id ? 'on' : ''}`}
+            style={{ '--i': i }}
+            aria-expanded={open === c.id}
+            onClick={() => toggle(c.id)}
+          >
+            <span>{c.label}</span>
+            <b>{props.qian.advice[c.id].gist}</b>
+          </button>
+        ))}
+      </div>
+      {open && (
+        <div class="aspect-detail" ref={detail}>
+          <h4>{categoryLabel(open)}</h4>
+          <AdviceRows a={props.qian.advice[open]} />
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -118,17 +170,7 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
         </section>
       )}
 
-      {!props.compact && (
-        <details class="qian-more">
-          <summary>其他类别的建议</summary>
-          {CATEGORIES.filter((c) => c.id !== category).map((c) => (
-            <section class="other-cat" key={c.id}>
-              <h4>{c.label}</h4>
-              <AdviceRows a={q.advice[c.id]} />
-            </section>
-          ))}
-        </details>
-      )}
+      {!props.compact && <Aspects qian={q} asked={category} />}
 
       {q.variants.length > 0 && !props.compact && (
         <details class="qian-more">

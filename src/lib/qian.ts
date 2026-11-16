@@ -8,8 +8,9 @@ import type { CategoryId } from './storage';
 export type Grade = '大吉' | '吉' | '中平' | '小凶' | '凶';
 export const QIAN_COUNT = 60;
 
-/** 分类建议：现况、建议、留意（时机或注意事项）。 */
+/** 分类建议：一句短语（用在“各方面”的总表），以及现况、建议、留意（时机或注意事项）。 */
 export interface Advice {
+  gist: string;
   now: string;
   do: string;
   note: string;

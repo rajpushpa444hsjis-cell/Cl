@@ -79,7 +79,7 @@ describe('六十甲子签资料', () => {
     const seen = new Map<string, number>();
     for (let i = 1; i <= 60; i++) {
       const q = getQian(i);
-      const advice = CATEGORIES.flatMap((c) => Object.values(q.advice[c.id]));
+      const advice = CATEGORIES.flatMap((c) => [q.advice[c.id].now, q.advice[c.id].do, q.advice[c.id].note]);
       for (const t of advice) expect(t.length, `第 ${i} 签：${t}`).toBeGreaterThanOrEqual(9);
       for (const t of [...advice, ...Object.values(q.you), ...Object.values(q.when)]) {
         expect(seen.get(t), `第 ${i} 签与第 ${seen.get(t)} 签重复：${t}`).toBeUndefined();
@@ -88,6 +88,20 @@ describe('六十甲子签资料', () => {
     }
     expect(CATEGORIES).toHaveLength(12);
     expect(seen.size).toBe(60 * 36 + 60 * 5 + 47 * 3 + 13);
+  });
+
+  it('各方面：每支签十二个方面各有一句八个字以内的短语，同一个方面里 60 支签互不相同', () => {
+    for (const c of CATEGORIES) {
+      const seen = new Set<string>();
+      for (let i = 1; i <= 60; i++) {
+        const g = getQian(i).advice[c.id].gist;
+        expect(g.length, `第 ${i} 签 ${c.label}：${g}`).toBeGreaterThanOrEqual(2);
+        expect(g.length, `第 ${i} 签 ${c.label}：${g}`).toBeLessThanOrEqual(8);
+        expect(g, `第 ${i} 签 ${c.label}`).not.toMatch(/[。！？\s]/);
+        expect(seen.has(g), `${c.label} 重复：${g}`).toBe(false);
+        seen.add(g);
+      }
+    }
   });
 
   it('每支签都有典故：标明史事、传说或小说，史事注明出处，题目不重复', () => {

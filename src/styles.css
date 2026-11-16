@@ -1011,6 +1011,65 @@ p.verdict {
   box-shadow: none;
 }
 
+/* ===== 各方面：十二格，每格一句短语；字像浮在水面上那样依次显出来 ===== */
+.aspect-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 18px;
+  border-top: 1px solid var(--line);
+}
+.aspect {
+  display: grid;
+  gap: 2px;
+  padding: 11px 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.aspect span {
+  color: var(--ink-3);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+}
+.aspect b {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  opacity: 0;
+  filter: blur(6px);
+  transition: opacity 0.9s ease, filter 0.9s ease;
+  transition-delay: calc(var(--i) * 70ms + 150ms);
+}
+.aspects.shown .aspect b {
+  opacity: 1;
+  filter: none;
+}
+.aspect.asked span {
+  color: var(--accent);
+}
+.aspect.on b {
+  font-weight: 600;
+}
+.aspect-detail {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: var(--radius-s);
+  background: var(--cell);
+  scroll-margin-bottom: calc(var(--tabbar-h) + 24px);
+  animation: rise 0.45s var(--ease) both;
+}
+.aspect-detail h4 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+}
+
 /* ===== 典故 ===== */
 .story-title {
   display: flex;
