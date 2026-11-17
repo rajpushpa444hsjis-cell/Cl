@@ -1,7 +1,7 @@
 /*
  * 版式：纸白的底，用留白和细线分区；首页与解签页不装进盒子，表单与列表才用浅灰的圆角格。
  * 颜色只有墨色、几档暖灰，和一点朱砂做强调。
- * 全部用系统字体（苹方）：大标题用细体、小标题用中等粗细，不用粗黑体；只有签诗原文用宋体。
+ * 全部用系统字体（苹方）：大标题用细体、小标题用中等粗细，不用粗黑体；签诗、爻辞、禀告也用同一种字体。
  * 进场有轻微的浮现，卦象由下往上一爻一爻画出。
  */
 :root {
@@ -21,7 +21,7 @@
   --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Noto Sans SC',
     'Microsoft YaHei', sans-serif;
   --display: var(--sans);
-  --verse: 'Songti SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif;
+  --verse: var(--sans); /* 签诗、爻辞、禀告与全站同一种字体（苹方），不再另用宋体 */
   --radius: 22px;
   --radius-s: 14px;
   --gutter: 24px;
@@ -522,14 +522,14 @@ input[type='checkbox'] {
   margin-bottom: 20px;
 }
 .sec .yao {
-  /* 动爻的爻辞原文：宋体，左侧一道朱砂细线 */
+  /* 动爻的爻辞原文：左侧一道朱砂细线 */
   margin: 22px 0 14px;
   padding-left: 16px;
   border-left: 2px solid var(--accent);
   font-family: var(--verse);
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.75;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 .sec .yao b {
   margin-right: 0.8em;
@@ -1281,7 +1281,7 @@ p.verdict {
   flex-direction: row-reverse;
   font-family: var(--verse);
   font-size: 26px;
-  font-weight: 500;
+  font-weight: 400;
 }
 .poem-col {
   display: flex;
