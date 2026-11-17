@@ -17,9 +17,6 @@ const js = pick('.js').replace(/<\/script/gi, '<\\/script');
 // 平台会自动包上 <!doctype>/<head>/<body>，这里只写页面内容
 const html = `<title>清吉</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap">
 <style>${css}
 /* 预览框架已依安全区留白，不再重复 */
 .app{padding-top:0}

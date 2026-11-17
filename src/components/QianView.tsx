@@ -37,7 +37,7 @@ function Aspects(props: { qian: Qian; asked: CategoryId }) {
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === 'undefined') return setShown(true);
-    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setShown(true), { threshold: 0.25 });
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setShown(true), { threshold: 0.01 } /* 一露出来就开始浮现，免得从下面卷上来时看到空格子 */);
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -93,6 +93,8 @@ function GuaBlock(props: { g: Gua }) {
 
 export function QianView(props: { qian: Qian; category: CategoryId; personal?: PersonalLine[]; compact?: boolean }) {
   const { qian: q, category } = props;
+  // 排列的原则：求签的人先看到签诗和自己问的那件事，其余由近到远——与自己有关的、各方面的总表，
+  // 最后才是想细读的人再点开的卦象、逐句解读、典故。签本里的精简版只留签诗、白话和所问。
   return (
     <article class={`qian-view ${props.compact ? 'compact' : ''}`}>
       <header class="qian-head">
@@ -107,6 +109,14 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
 
       <p class="qian-key">{q.key}</p>
 
+      {/* 你问的那件事，先给一句话；详细的在签诗下面 */}
+      {!props.compact && (
+        <p class="qian-answer">
+          <span>{categoryLabel(category)}</span>
+          {q.advice[category].gist}
+        </p>
+      )}
+
       {/* 直书：每句一栏、由右至左；逐字排列，不依赖字型的直排支援 */}
       <div class="poem" lang="zh-Hans">
         <p class="sr-only">{q.lines.join('，')}。</p>
@@ -119,37 +129,7 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
         </div>
       </div>
 
-      <GuaBlock g={q.gua} />
-
-      {!props.compact && (
-        <section class="qian-sec">
-          <h3>逐句解读</h3>
-          <ol class="line-notes">
-            {q.lines.map((l, i) => (
-              <li key={i}>
-                <b>{l}</b>
-                <span>{q.lineNotes[i]}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      <section class="qian-sec">
-        <h3>白话解说</h3>
-        <p>{q.plain}</p>
-      </section>
-
-      {!props.compact && (
-        <section class="qian-sec story">
-          <h3>典故</h3>
-          <p class="story-title">
-            <b>{q.story.title}</b>
-            <span>{q.story.kind}</span>
-          </p>
-          <p>{q.story.text}</p>
-        </section>
-      )}
+      <p class="qian-plain">{q.plain}</p>
 
       <section class="qian-sec focus">
         <h3>所问【{categoryLabel(category)}】</h3>
@@ -172,22 +152,64 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
 
       {!props.compact && <Aspects qian={q} asked={category} />}
 
-      {q.variants.length > 0 && !props.compact && (
-        <details class="qian-more">
-          <summary>版本异文</summary>
-          <ul class="variants">
-            {q.variants.map((v) => (
-              <li key={v.line}>
-                第{cnNumber(v.line)}句：
-                {Object.entries(v.others).map(([src, text]) => (
-                  <span key={src}>
-                    {src}本作“{text}”
-                  </span>
+      {/* 细读：一行一项，想看的再点开 */}
+      {!props.compact && (
+        <div class="qian-reads">
+          <details class="qian-more">
+            <summary>
+              <span>
+                卦象<em>{q.gua.full}</em>
+              </span>
+            </summary>
+            <GuaBlock g={q.gua} />
+          </details>
+
+          <details class="qian-more">
+            <summary>
+              <span>逐句解读</span>
+            </summary>
+            <ol class="line-notes">
+              {q.lines.map((l, i) => (
+                <li key={i}>
+                  <b>{l}</b>
+                  <span>{q.lineNotes[i]}</span>
+                </li>
+              ))}
+            </ol>
+          </details>
+
+          <details class="qian-more">
+            <summary>
+              <span>
+                典故<em>{q.story.title}</em>
+              </span>
+            </summary>
+            <p class="story-text">
+              <b>{q.story.kind}</b>
+              {q.story.text}
+            </p>
+          </details>
+
+          {q.variants.length > 0 && (
+            <details class="qian-more">
+              <summary>
+                <span>版本异文</span>
+              </summary>
+              <ul class="variants">
+                {q.variants.map((v) => (
+                  <li key={v.line}>
+                    第{cnNumber(v.line)}句：
+                    {Object.entries(v.others).map(([src, text]) => (
+                      <span key={src}>
+                        {src}本作“{text}”
+                      </span>
+                    ))}
+                  </li>
                 ))}
-              </li>
-            ))}
-          </ul>
-        </details>
+              </ul>
+            </details>
+          )}
+        </div>
       )}
     </article>
   );

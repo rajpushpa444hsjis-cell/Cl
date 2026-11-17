@@ -21,7 +21,7 @@
   --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'HarmonyOS Sans SC', 'MiSans', 'Noto Sans SC',
     'Microsoft YaHei', sans-serif;
   --display: var(--sans);
-  --verse: 'Songti SC', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  --verse: 'Songti SC', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif;
   --radius: 22px;
   --radius-s: 14px;
   --gutter: 24px;
@@ -671,6 +671,9 @@ input[type='checkbox'] {
 }
 
 /* ===== 求签：进度 ===== */
+.steps[hidden] {
+  display: none;
+}
 .steps {
   /* 换步骤时卷到这里：上方留一点空，别贴着屏幕边 */
   scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 18px);
@@ -1020,8 +1023,8 @@ p.verdict {
 }
 .aspect {
   display: grid;
-  gap: 2px;
-  padding: 11px 0 12px;
+  gap: 1px;
+  padding: 9px 0 10px;
   border: 0;
   border-bottom: 1px solid var(--line);
   background: none;
@@ -1068,26 +1071,6 @@ p.verdict {
   font-weight: 500;
   letter-spacing: 0.14em;
   color: var(--ink-2);
-}
-
-/* ===== 典故 ===== */
-.story-title {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin: 0 0 8px;
-}
-.story-title b {
-  font-family: var(--verse);
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-.story-title span {
-  flex: none;
-  color: var(--accent);
-  font-size: 14px;
-  letter-spacing: 0.14em;
 }
 
 /* ===== 签柜：一格格抽屉，拉开同号的那一格 ===== */
@@ -1268,10 +1251,30 @@ p.verdict {
   font-size: 20px;
   letter-spacing: 0.08em;
 }
+.qian-answer {
+  margin: 10px 0 0;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+.qian-answer span {
+  margin-right: 0.9em;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+}
 /* 签诗：直排，每句一栏，由右至左 */
 .poem {
   width: fit-content;
-  margin: 44px auto;
+  margin: 34px auto 28px;
+}
+/* 白话：紧跟在签诗下面，不另立标题 */
+.qian-plain {
+  margin: 0;
+  color: var(--ink-2);
+}
+.qian-plain + .qian-sec.focus {
+  margin-top: 28px;
 }
 .poem-cols {
   display: flex;
@@ -1370,10 +1373,45 @@ p.verdict {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   min-height: 56px;
   cursor: pointer;
   letter-spacing: 0.06em;
   list-style: none;
+}
+.qian-more summary span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qian-more summary em {
+  margin-left: 14px;
+  color: var(--ink-3);
+  font-style: normal;
+  font-size: 15px;
+}
+.qian-more summary::after {
+  flex: none;
+}
+/* 细读里的内容：卦象、逐句解读、典故，展开后不再各自画分隔线 */
+.qian-more > .gua {
+  margin: 4px 0 24px;
+  padding-top: 0;
+  border-top: 0;
+}
+.qian-more > .line-notes {
+  margin: 4px 0 24px;
+}
+.story-text {
+  margin: 0 0 24px;
+}
+.story-text b {
+  margin-right: 0.9em;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
 }
 .qian-more summary::-webkit-details-marker {
   display: none;

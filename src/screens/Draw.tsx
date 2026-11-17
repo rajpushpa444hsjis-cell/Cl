@@ -261,8 +261,9 @@ export function Draw(props: Props) {
   return (
     <section class="screen-body">
       <div ref={topRef} />
-      <ScreenHeader title={needed === 0 ? '求签' : '掷筊求签'} sub="诚心正意，一事一问" />
-      <ol class="steps" aria-label="求签步骤" ref={stepsRef}>
+      {/* 解签时整页就是那张签，不再顶着大标题和进度条 */}
+      {step !== 'result' && <ScreenHeader title={needed === 0 ? '求签' : '掷筊求签'} sub="诚心正意，一事一问" />}
+      <ol class="steps" aria-label="求签步骤" ref={stepsRef} hidden={step === 'result'}>
         {steps.map((s, i) => (
           <li key={s.id} class={i < stepIdx ? 'done' : i === stepIdx ? 'now' : ''} aria-current={i === stepIdx ? 'step' : undefined}>
             {s.label}
