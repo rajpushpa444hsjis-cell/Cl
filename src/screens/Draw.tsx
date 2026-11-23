@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { CardSheet } from '../components/CardSheet';
 import { Drawers, Knots } from '../components/Drawers';
 import { JiaoThrow } from '../components/Jiao';
 import { QianTong } from '../components/QianTong';
 import { QianView } from '../components/QianView';
 import { Footer, Icon, ScreenHeader } from '../components/ui';
 import { playBell, playLow, playRattle, playStickDrop, unlockAudio } from '../lib/audio';
+import { renderQianCard } from '../lib/card';
 import type { DailyFortune } from '../lib/fortune';
 import { vibrate } from '../lib/haptics';
 import type { JiaoResult, Toss } from '../lib/jiao';
@@ -59,6 +61,7 @@ export function Draw(props: Props) {
   const [confirmFail, setConfirmFail] = useState<JiaoResult | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [tied, setTied] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
   const [reviewDays, setReviewDays] = useState<number | null>(null); // 解签后选的“几天后回看”
   const [picking, setPicking] = useState(true); // 问事这一步：true 在选类别，false 在选问法
   // 掷筊确认要几个圣筊；0 是不掷筊，摇到哪支取哪支
@@ -478,6 +481,9 @@ export function Draw(props: Props) {
           <div class="actions">
             <button class="btn primary big" onClick={() => props.onOpenJournal('book')}>查看签本</button>
             <button class="btn ghost big" onClick={restart}>再求一签</button>
+            <button class="btn quiet big" onClick={() => setCardOpen(true)}>
+              <Icon name="image" size={18} /> 生成签诗卡片
+            </button>
             {gradeTone(qian.grade) === 'bad' && (
               <button class="btn quiet big" onClick={tie}>系在架上，不带走</button>
             )}
@@ -493,6 +499,16 @@ export function Draw(props: Props) {
           <button class="btn primary big" onClick={restart}>再求一签</button>
           <button class="btn quiet big" onClick={() => props.onOpenJournal('rack')}>去看签架</button>
         </div>
+      )}
+
+      {qian && category && (
+        <CardSheet
+          open={cardOpen}
+          onClose={() => setCardOpen(false)}
+          title="签诗卡片"
+          filename={`清吉-第${qian.no}签.png`}
+          render={() => renderQianCard({ qian, category, name: profile.nickname, dateText: day.solarText })}
+        />
       )}
 
       {/* “结果仅供参考”只在签文出来的时候放在最下面 */}

@@ -194,6 +194,7 @@ export function App() {
         {tab === 'journal' && (
           <Journal
             journal={journal}
+            nickname={profile.nickname}
             view={journalView}
             onView={setJournalView}
             onUpdate={patchEntry}

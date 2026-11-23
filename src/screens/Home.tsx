@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { GuaFig } from '../components/GuaFig';
+import { CardSheet } from '../components/CardSheet';
 import { MonthSheet } from '../components/MonthSheet';
 import { Icon, Modal } from '../components/ui';
-import { canShareFiles, renderFortuneCard, shareImage } from '../lib/card';
-import { IS_PREVIEW, saveFile } from '../lib/platform';
+import { renderFortuneCard } from '../lib/card';
 import type { DailyGua } from '../lib/dailyGua';
 import type { DailyFortune } from '../lib/fortune';
 import { type Bazi, type DayInfo, getHours, hourIndex, parseKey } from '../lib/lunar';
@@ -35,13 +35,8 @@ interface Props {
 
 export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, drawLabel, onDraw, onPickDay, people, activeId, onSwitch, due, onReview }: Props) {
   const [cardOpen, setCardOpen] = useState(false);
-  const [card, setCard] = useState<{ blob: Blob; url: string } | null>(null);
-  const [cardErr, setCardErr] = useState('');
-  const [msg, setMsg] = useState('');
   const [monthOpen, setMonthOpen] = useState(false);
   const [whoOpen, setWhoOpen] = useState(false);
-
-  useEffect(() => () => card && URL.revokeObjectURL(card.url), [card]);
 
   // ---- 时辰：每分钟看一次现在走到哪一格 ----
   const [clock, setClock] = useState(() => new Date());
@@ -61,38 +56,6 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
   useEffect(() => setPicked(null), [day.key]); // 换一天，回到预设
   const shownIdx = picked ?? (nowIdx >= 0 ? nowIdx : null);
   const hour = shownIdx === null ? null : hours[shownIdx];
-
-  const makeCard = async () => {
-    setCardOpen(true);
-    setCardErr('');
-    setMsg('');
-    try {
-      const blob = await renderFortuneCard({
-        nickname: profile.nickname,
-        day,
-        fortune: f,
-        gua,
-      });
-      setCard((old) => {
-        if (old) URL.revokeObjectURL(old.url);
-        return { blob, url: URL.createObjectURL(blob) };
-      });
-    } catch (e) {
-      setCardErr((e as Error).message || '卡片产生失败');
-    }
-  };
-
-  const filename = `清吉-${day.key}.png`;
-  const share = async () => {
-    if (!card) return;
-    const r = await shareImage(card.blob, filename);
-    setMsg(r === 'downloaded' ? '已下载图片' : '');
-  };
-  const save = async () => {
-    if (!card) return;
-    const r = await saveFile(card.blob, filename);
-    setMsg(r === 'saved' ? '已保存图片' : r === 'declined' ? '' : '这里无法直接保存，请长按上方图片。');
-  };
 
   const [, , month, date] = day.solarText.match(/(\d+)年(\d+)月(\d+)日/)!;
 
@@ -226,7 +189,7 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
       <div class="actions">
         <button class="btn primary big" onClick={onDraw}>{drawLabel}</button>
         {isToday && (
-          <button class="btn quiet big" onClick={makeCard}>
+          <button class="btn quiet big" onClick={() => setCardOpen(true)}>
             <Icon name="image" size={18} /> 生成今日运势卡片
           </button>
         )}
@@ -265,26 +228,13 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
         </div>
       </Modal>
 
-      <Modal open={cardOpen} onClose={() => setCardOpen(false)} title="今日运势卡片">
-        {cardErr && <p class="err">{cardErr}</p>}
-        {!card && !cardErr && <p class="hint center">卡片绘制中…</p>}
-        {card && (
-          <>
-            <img class="card-preview" src={card.url} alt="今日运势卡片" />
-            <div class="row">
-              {canShareFiles() && (
-                <button class="btn primary" onClick={share}>
-                  <Icon name="share" /> 分享
-                </button>
-              )}
-              <button class={`btn ${IS_PREVIEW ? 'primary' : 'ghost'}`} onClick={save}>
-                <Icon name="download" /> 保存图片
-              </button>
-            </div>
-            {msg && <p class="hint center">{msg}</p>}
-          </>
-        )}
-      </Modal>
+      <CardSheet
+        open={cardOpen}
+        onClose={() => setCardOpen(false)}
+        title="今日运势卡片"
+        filename={`清吉-${day.key}.png`}
+        render={() => renderFortuneCard({ nickname: profile.nickname, day, fortune: f, gua })}
+      />
     </section>
   );
 }

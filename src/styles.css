@@ -1807,6 +1807,7 @@ p.verdict {
 .entry-foot {
   display: flex;
   justify-content: flex-end;
+  gap: 18px;
 }
 
 /* ===== 签本／签架 的切换，与签架 ===== */

@@ -1,6 +1,8 @@
 import { useState } from 'preact/hooks';
+import { CardSheet } from '../components/CardSheet';
 import { QianView } from '../components/QianView';
 import { GradeSeal, Icon, Modal, ScreenHeader } from '../components/ui';
+import { renderQianCard } from '../lib/card';
 import { cnNumber, getQian } from '../lib/qian';
 import { journalStats } from '../lib/review';
 import { type JournalEntry, type Outcome, categoryLabel } from '../lib/storage';
@@ -15,6 +17,8 @@ type View = 'book' | 'rack';
 
 interface Props {
   journal: JournalEntry[];
+  /** 自己的称呼：做卡片时写在页尾（替家人求的签写家人的称呼）。 */
+  nickname: string;
   /** book＝带走的签；rack＝系在签架上的凶签。 */
   view: View;
   onView: (v: View) => void;
@@ -23,7 +27,8 @@ interface Props {
   onDraw: () => void;
 }
 
-export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: Props) {
+export function Journal({ journal, nickname, view, onView, onUpdate, onDelete, onDraw }: Props) {
+  const [cardFor, setCardFor] = useState<JournalEntry | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [askDelete, setAskDelete] = useState<string | null>(null);
   const sorted = [...journal].sort((a, b) => b.ts - a.ts);
@@ -141,15 +146,27 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
                   </button>
                 </div>
               ) : (
-                <button class="link danger" onClick={() => setAskDelete(e.id)}>
-                  <Icon name="trash" size={16} /> 删除
-                </button>
+                <>
+                  <button class="link" onClick={() => setCardFor(e)}>
+                    <Icon name="image" size={16} /> 签诗卡片
+                  </button>
+                  <button class="link danger" onClick={() => setAskDelete(e.id)}>
+                    <Icon name="trash" size={16} /> 删除
+                  </button>
+                </>
               )}
             </div>
           </article>
         );
       })}
 
+      <CardSheet
+        open={cardFor !== null}
+        onClose={() => setCardFor(null)}
+        title="签诗卡片"
+        filename={cardFor ? `清吉-第${cardFor.qianNo}签.png` : '清吉.png'}
+        render={() => renderQianCard({ qian: getQian(cardFor!.qianNo), category: cardFor!.category, name: cardFor!.who ?? nickname, dateText: cardFor!.solarText })}
+      />
     </section>
   );
 }

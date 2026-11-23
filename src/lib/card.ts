@@ -3,6 +3,8 @@
 import type { DailyGua } from './dailyGua';
 import type { DailyFortune } from './fortune';
 import type { DayInfo } from './lunar';
+import { type Qian, cnNumber, gradeTone } from './qian';
+import { type CategoryId, categoryLabel } from './storage';
 
 const W = 1080;
 const H = 1350;
@@ -172,6 +174,132 @@ export async function renderFortuneCard(input: CardInput): Promise<Blob> {
   tracking(ctx, 4);
   ctx.fillText(`${nickname}的今日运势`, M, H - 88);
 
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('卡片产生失败'))), 'image/png'),
+  );
+}
+
+export interface QianCardInput {
+  qian: Qian;
+  /** 所问的类别：卡片底部写这一类的一句话。 */
+  category: CategoryId;
+  /** 求签的人（替家人求时为家人的称呼）。问题原文不印上卡片，免得私事随图片传出去。 */
+  name: string;
+  /** 求签的日子，如 2026年11月23日。 */
+  dateText: string;
+}
+
+/**
+ * 签诗卡片，1080×1350（4:5），与今日运势卡片同一套版式：
+ * 签头干支与签号、吉凶，签意，四句签诗直书（由右至左），所问那一类的一句话，页尾称呼、日期与“结果仅供参考”。
+ */
+export async function renderQianCard(input: QianCardInput): Promise<Blob> {
+  const { qian: q, category, name, dateText } = input;
+  try {
+    await document.fonts?.ready;
+  } catch {
+    /* 忽略 */
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = 'left';
+  const rule = (y: number) => {
+    ctx.fillStyle = C.line;
+    ctx.fillRect(M, y, W - M * 2, 2);
+  };
+
+  // 签头：干支与属性
+  ctx.fillStyle = C.accent;
+  ctx.font = `500 34px ${SANS}`;
+  tracking(ctx, 7);
+  ctx.fillText(`${q.ganzhi}・${q.attr}`, M, 156);
+
+  // 签号
+  ctx.fillStyle = C.ink;
+  ctx.font = `300 124px ${SANS}`;
+  tracking(ctx, 2);
+  ctx.fillText(`第${cnNumber(q.no)}签`, M - 6, 288);
+
+  // 吉凶：细框的胶囊，靠右，与签号齐
+  const tone = gradeTone(q.grade);
+  ctx.font = `500 42px ${SANS}`;
+  tracking(ctx, 6);
+  const gw = ctx.measureText(q.grade).width + 64;
+  const gh = 78;
+  const gx = W - M - gw;
+  const gy = 288 - 46 - gh / 2;
+  ctx.strokeStyle = tone === 'good' ? C.accent : C.ink2;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') ctx.roundRect(gx, gy, gw, gh, gh / 2);
+  else ctx.rect(gx, gy, gw, gh);
+  ctx.stroke();
+  ctx.fillStyle = tone === 'good' ? C.accent : C.ink2;
+  ctx.textAlign = 'center';
+  ctx.fillText(q.grade, gx + gw / 2 + 3, gy + gh / 2 + 15);
+  ctx.textAlign = 'left';
+
+  // 签意
+  ctx.fillStyle = C.ink;
+  let keySize = 46;
+  ctx.font = `500 ${keySize}px ${SANS}`;
+  tracking(ctx, 4);
+  while (ctx.measureText(q.key).width > W - M * 2 && keySize > 34) {
+    keySize -= 2;
+    ctx.font = `500 ${keySize}px ${SANS}`;
+  }
+  ctx.fillText(q.key, M, 384);
+  rule(436);
+
+  // 签诗：四栏直书，由右至左，栏间一道细线
+  const top = 484;
+  const step = 80;
+  const colGap = 136;
+  const right = W / 2 + colGap * 1.5;
+  ctx.fillStyle = C.line;
+  for (let c = 0; c < 3; c++) ctx.fillRect(right - c * colGap - colGap / 2 - 1, top + 6, 2, step * 7 - 12);
+  ctx.fillStyle = C.ink;
+  ctx.font = `400 60px ${SANS}`;
+  tracking(ctx, 0);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  q.lines.forEach((line, c) => {
+    [...line].forEach((ch, i) => ctx.fillText(ch, right - c * colGap, top + step / 2 + i * step));
+  });
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  rule(top + step * 7 + 36);
+
+  // 所问那一类的一句话
+  const ay = top + step * 7 + 122;
+  ctx.fillStyle = C.accent;
+  ctx.font = `500 34px ${SANS}`;
+  tracking(ctx, 7);
+  const label = categoryLabel(category);
+  ctx.fillText(label, M, ay);
+  const lw = ctx.measureText(label).width;
+  ctx.fillStyle = C.ink;
+  ctx.font = `400 48px ${SANS}`;
+  tracking(ctx, 4);
+  ctx.fillText(q.advice[category].gist, M + lw + 36, ay + 2);
+
+  // 页尾
+  ctx.fillStyle = C.ink3;
+  ctx.font = `400 26px ${SANS}`;
+  tracking(ctx, 4);
+  ctx.fillText(`${name}・${dateText}`, M, H - 88);
+  ctx.textAlign = 'right';
+  ctx.fillText('结果仅供参考', W - M, H - 88);
+
+  return toBlob(canvas);
+}
+
+function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('卡片产生失败'))), 'image/png'),
   );
