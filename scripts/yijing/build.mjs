@@ -113,6 +113,8 @@ for (let no = 1; no <= 64; no++) {
   if (!h) throw new Error(`缺第 ${no} 卦`);
   if (h.lines.length !== 6) throw new Error(`第 ${no} 卦 ${h.title} 不是六爻：${h.lines.length}`);
   if (!h.judgment) throw new Error(`第 ${no} 卦缺卦辞`);
+  if ((no === 1 || no === 2) !== !!h.extra) throw new Error(`第 ${no} 卦的用九／用六不对`);
+  if (h.extra && h.extra.label !== (no === 1 ? '用九' : '用六')) throw new Error(`第 ${no} 卦应为${no === 1 ? '用九' : '用六'}`);
   const [up, low] = [...byNo[no].key];
   const topDown = [...gua.trigrams[up].lines, ...gua.trigrams[low].lines];
   h.lines.forEach((l, i) => {
@@ -139,7 +141,7 @@ const toHans = (s) =>
 
 const out = {
   _说明:
-    '《周易》六十四卦的卦辞与爻辞原文（简体）。由 scripts/yijing/build.mjs 自中文维基文库《周易》各卦页面取出并检查后产生，请勿手改；繁体原文在 docs/周易卦爻辭原文.txt。lines 由初爻到上爻。',
+    '《周易》六十四卦的卦辞与爻辞原文（简体），乾、坤另有用九、用六（extra）。由 scripts/yijing/build.mjs 自中文维基文库《周易》各卦页面取出并检查后产生，请勿手改；繁体原文在 docs/周易卦爻辭原文.txt。lines 由初爻到上爻。',
   source: '中文维基文库《周易》（zh.wikisource.org/wiki/周易）',
   hexagrams: {},
 };
@@ -149,6 +151,8 @@ for (let no = 1; no <= 64; no++) {
   out.hexagrams[no] = {
     judgment: toHans(h.judgment),
     lines: h.lines.map((l) => ({ label: l.label, text: toHans(l.text) })),
+    // 乾的“用九”、坤的“用六”：六爻全动时读这一句
+    ...(h.extra ? { extra: { label: h.extra.label, text: toHans(h.extra.text) } } : {}),
   };
   report.push(`## ${no} ${h.title}`, `卦辭：${h.judgment}`, ...h.lines.map((l) => `${l.label}：${l.text}`), ...(h.extra ? [`${h.extra.label}：${h.extra.text}`] : []), '');
 }

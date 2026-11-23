@@ -7,7 +7,7 @@ import { renderFortuneCard } from '../lib/card';
 import type { DailyGua } from '../lib/dailyGua';
 import type { DailyFortune } from '../lib/fortune';
 import { type Bazi, type DayInfo, getHours, hourIndex, parseKey } from '../lib/lunar';
-import { cnNumber } from '../lib/qian';
+import { entryName } from '../lib/review';
 import { type JournalEntry, type Profile, categoryLabel } from '../lib/storage';
 
 interface Props {
@@ -98,7 +98,7 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
           <div class="review" role="group" aria-label="回看">
             <p>
               {md(due[0].dateKey)}
-              {due[0].who ? `替${due[0].who}` : ''}问的{categoryLabel(due[0].category)}（第{cnNumber(due[0].qianNo)}签），应验了吗？
+              {due[0].who ? `替${due[0].who}` : ''}问的{categoryLabel(due[0].category)}（{entryName(due[0])}），应验了吗？
             </p>
             <div class="review-acts">
               <button onClick={() => onReview(due[0].id, 'yes')}>应验</button>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { type AskMode, AskPicker, ModeSwitch, nextQuestion } from '../components/AskPicker';
 import { CardSheet } from '../components/CardSheet';
 import { Drawers, Knots } from '../components/Drawers';
 import { JiaoThrow } from '../components/Jiao';
@@ -16,7 +17,7 @@ import { personalReading } from '../lib/personal';
 import { REVIEW_CHOICES, reviewDate } from '../lib/review';
 import { QIAN_COUNT, cnNumber, getQian, gradeTone } from '../lib/qian';
 import { randInt } from '../lib/random';
-import { CATEGORIES, type CategoryId, type JournalEntry, type Profile, type Settings, categoryLabel, newId } from '../lib/storage';
+import { type CategoryId, type JournalEntry, type Profile, type Settings, categoryLabel, newId } from '../lib/storage';
 
 type Step = 'category' | 'report' | 'ask' | 'shake' | 'confirm' | 'drawer' | 'result';
 const STEPS: { id: Step; label: string }[] = [
@@ -46,6 +47,9 @@ interface Props {
   /** 定下（或取消）回看的日子。 */
   onReview: (id: string, reviewAt: string | undefined) => void;
   onOpenJournal: (view: 'book' | 'rack') => void;
+  /** 问事的方式：求签或起卦。 */
+  mode: AskMode;
+  onMode: (m: AskMode) => void;
 }
 
 export function Draw(props: Props) {
@@ -95,7 +99,7 @@ export function Draw(props: Props) {
 
   // 选了类别就进到问法那一屏；换了类别，原先点选的现成问法不再适用
   const pickCategory = (id: CategoryId) => {
-    if (id !== category && CATEGORIES.some((c) => c.asks.includes(question))) setQuestion('');
+    setQuestion(nextQuestion(category, id, question));
     setCategory(id);
     setPicking(false);
     requestAnimationFrame(() => stepsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -281,6 +285,7 @@ export function Draw(props: Props) {
       <div ref={topRef} />
       {/* 解签时整页就是那张签，不再顶着大标题和进度条 */}
       {step !== 'result' && <ScreenHeader title={needed === 0 ? '求签' : '掷筊求签'} sub="诚心正意，一事一问" />}
+      {step === 'category' && (picking || !category) && <ModeSwitch mode={props.mode} onChange={props.onMode} />}
       <ol class="steps" aria-label="求签步骤" ref={stepsRef} hidden={step === 'result'}>
         {steps.map((s, i) => (
           <li key={s.id} class={i < stepIdx ? 'done' : i === stepIdx ? 'now' : ''} aria-current={i === stepIdx ? 'step' : undefined}>
@@ -289,56 +294,19 @@ export function Draw(props: Props) {
         ))}
       </ol>
 
-      {/* 问事分两屏：先选类别，再选一个现成的问法或自己写。每一屏都不必往下滑 */}
-      {step === 'category' && (picking || !category) && (
-        <div class="card">
-          <h2 class="card-title">想问哪一方面？</h2>
-          <div class="cat-grid" role="radiogroup" aria-label="问事类别">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                role="radio"
-                aria-checked={category === c.id}
-                class={`cat ${category === c.id ? 'on' : ''}`}
-                onClick={() => pickCategory(c.id)}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {step === 'category' && !picking && category && (
-        <div class="card">
-          {/* 标题与“回去换类别”放在同一行，省下一行的高度 */}
-          <div class="ask-head">
-            <h2 class="card-title">想问什么？</h2>
-            <button class="link back" aria-label={`${categoryLabel(category)}，换一个类别`} onClick={() => setPicking(true)}>
-              <Icon name="back" size={16} /> {categoryLabel(category)}
-            </button>
-          </div>
-          <div class="ask-list" role="radiogroup" aria-label="现成的问法">
-            {(CATEGORIES.find((c) => c.id === category)?.asks ?? []).map((a) => (
-              <button key={a} role="radio" aria-checked={question === a} class={`ask ${question === a ? 'on' : ''}`} onClick={() => setQuestion(question === a ? '' : a)}>
-                {a}
-              </button>
-            ))}
-          </div>
-          <label class="field">
-            <textarea
-              rows={question.length > 17 ? 2 : 1}
-              maxLength={100}
-              value={question}
-              aria-label="想问的事"
-              placeholder="也可以自己写，或在心里默念"
-              onInput={(e) => setQuestion((e.target as HTMLTextAreaElement).value)}
-            />
-          </label>
-          <button class="btn primary big" onClick={() => { unlockAudio(); go('report'); }}>
-            下一步
-          </button>
-        </div>
+      {step === 'category' && (
+        <AskPicker
+          category={category}
+          question={question}
+          picking={picking}
+          onCategory={pickCategory}
+          onPicking={() => setPicking(true)}
+          onQuestion={setQuestion}
+          onNext={() => {
+            unlockAudio();
+            go('report');
+          }}
+        />
       )}
 
       {step === 'report' && category && (

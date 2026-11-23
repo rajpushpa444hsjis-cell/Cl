@@ -62,6 +62,9 @@ export interface JournalEntry {
   who?: string;
   /** 回看的日子（YYYY-MM-DD）：到了这天，首页提醒回来标记有没有应验。 */
   reviewAt?: string;
+  /** 起卦的记录：kind 为 'gua'，cast 为六次掷钱的得数（6–9，初爻到上爻）；这时 qianNo 为 0、qianGz 与 grade 为空。 */
+  kind?: 'gua';
+  cast?: number[];
 }
 
 const K = {

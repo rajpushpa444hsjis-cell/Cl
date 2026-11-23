@@ -26,6 +26,8 @@ import {
   saveProfile,
   saveSettings,
 } from './lib/storage';
+import type { AskMode } from './components/AskPicker';
+import { Divine } from './screens/Divine';
 import { Draw } from './screens/Draw';
 import { Home } from './screens/Home';
 import { Journal } from './screens/Journal';
@@ -34,7 +36,7 @@ import { Settings } from './screens/Settings';
 type Tab = 'home' | 'draw' | 'journal' | 'settings';
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'home', label: '今日', icon: 'today' },
-  { id: 'draw', label: '求签', icon: 'draw' },
+  { id: 'draw', label: '问事', icon: 'draw' },
   { id: 'journal', label: '签本', icon: 'book' },
   { id: 'settings', label: '设置', icon: 'settings' },
 ];
@@ -59,6 +61,7 @@ export function App() {
   const [journal, setJournal] = useState<JournalEntry[]>(loadJournal);
   const [tab, setTab] = useState<Tab>('home');
   const [journalView, setJournalView] = useState<'book' | 'rack'>('book');
+  const [askMode, setAskMode] = useState<AskMode>('qian'); // 问事：求签或起卦
   const [now, setNow] = useState(() => new Date());
   const [people, setPeople] = useState<Person[]>(loadPeople); // 家人
   const [activeId, setActiveId] = useState<string>(loadActive); // 现在看的是谁
@@ -162,7 +165,10 @@ export function App() {
             fortune={viewFortune}
             gua={viewGua}
             drawLabel={settings.confirmMode === 0 ? '求签' : '掷筊求签'}
-            onDraw={() => switchTab('draw')}
+            onDraw={() => {
+              setAskMode('qian');
+              switchTab('draw');
+            }}
             onPickDay={setViewKey}
             people={[{ id: SELF, nickname: profile.nickname }, ...people]}
             activeId={forOther ? activeId : SELF}
@@ -173,9 +179,11 @@ export function App() {
             }
           />
         </div>
-        <div hidden={tab !== 'draw'}>
+        <div hidden={tab !== 'draw' || askMode !== 'qian'}>
           <Draw
-            active={tab === 'draw'}
+            active={tab === 'draw' && askMode === 'qian'}
+            mode={askMode}
+            onMode={setAskMode}
             profile={current}
             who={forOther ? current.nickname : undefined}
             bazi={bazi}
@@ -191,6 +199,22 @@ export function App() {
             }}
           />
         </div>
+        <div hidden={tab !== 'draw' || askMode !== 'gua'}>
+          <Divine
+            active={tab === 'draw' && askMode === 'gua'}
+            mode={askMode}
+            onMode={setAskMode}
+            profile={current}
+            who={forOther ? current.nickname : undefined}
+            day={day}
+            onSave={(e) => updateJournal([e, ...journal])}
+            onReview={(id, reviewAt) => patchEntry(id, { reviewAt })}
+            onOpenJournal={() => {
+              setJournalView('book');
+              switchTab('journal');
+            }}
+          />
+        </div>
         {tab === 'journal' && (
           <Journal
             journal={journal}
@@ -199,7 +223,10 @@ export function App() {
             onView={setJournalView}
             onUpdate={patchEntry}
             onDelete={(id) => updateJournal(journal.filter((e) => e.id !== id))}
-            onDraw={() => switchTab('draw')}
+            onDraw={() => {
+              setAskMode('qian');
+              switchTab('draw');
+            }}
           />
         )}
         {tab === 'settings' && (

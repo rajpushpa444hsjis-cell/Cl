@@ -1,7 +1,9 @@
 // 签本的回看与统计。
 // 回看：求签时定一个日子，到了那天首页提醒回来标记有没有应验。
 // 统计：已标记的签里应验占多少、最常问哪几类。系在签架上的凶签不计入。
+import { type LineValue, castTitle } from './divine';
 import { addDays } from './lunar';
+import { cnNumber } from './qian';
 import type { CategoryId, JournalEntry } from './storage';
 
 export const REVIEW_CHOICES = [
@@ -9,6 +11,10 @@ export const REVIEW_CHOICES = [
   { days: 30, label: '一个月后' },
   { days: 90, label: '三个月后' },
 ] as const;
+
+/** 一笔记录的名称：求签写签号，起卦写本卦（与变卦）。 */
+export const entryName = (e: JournalEntry): string =>
+  e.kind === 'gua' && e.cast ? castTitle(e.cast as LineValue[]) : `第${cnNumber(e.qianNo)}签`;
 
 /** 从某一天起算几天后的回看日。 */
 export const reviewDate = (fromKey: string, days: number): string => addDays(fromKey, days);

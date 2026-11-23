@@ -77,6 +77,35 @@ export function playJiaoLand(): void {
   knock(c, t + 0.25, { freq: 1500, q: 5, decay: 0.06, gain: 0.25 });
 }
 
+/** 一声金属的叮：两个不谐和的泛音，很快衰减。 */
+function ping(c: AudioContext, t: number, freq: number, gain: number) {
+  for (const [mul, g, decay] of [[1, gain, 0.22], [2.76, gain * 0.45, 0.12]] as const) {
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq * mul, t);
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(g, t + 0.003);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    o.connect(og).connect(c.destination);
+    o.start(t);
+    o.stop(t + decay + 0.02);
+  }
+}
+
+/** 三枚铜钱先后落在桌上，各弹一下。 */
+export function playCoins(): void {
+  const c = ready();
+  if (!c) return;
+  const t = c.currentTime + 0.01;
+  [0, 0.07, 0.15].forEach((dt, i) => {
+    const f = 2300 + Math.random() * 900;
+    ping(c, t + dt, f, 0.16);
+    ping(c, t + dt + 0.09 + i * 0.02, f * 1.04, 0.06);
+    knock(c, t + dt, { freq: 3800, q: 3, decay: 0.03, gain: 0.25 });
+  });
+}
+
 /** 筊杯抛起时的轻微风声。 */
 export function playWhoosh(): void {
   const c = ready();

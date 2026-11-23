@@ -1,10 +1,12 @@
 import { useState } from 'preact/hooks';
 import { CardSheet } from '../components/CardSheet';
+import { DivineView } from '../components/DivineView';
 import { QianView } from '../components/QianView';
 import { GradeSeal, Icon, Modal, ScreenHeader } from '../components/ui';
 import { renderQianCard } from '../lib/card';
 import { cnNumber, getQian } from '../lib/qian';
-import { journalStats } from '../lib/review';
+import { type LineValue, divine } from '../lib/divine';
+import { entryName, journalStats } from '../lib/review';
 import { type JournalEntry, type Outcome, categoryLabel } from '../lib/storage';
 
 const OUTCOMES: { id: Outcome; label: string }[] = [
@@ -33,7 +35,7 @@ export function Journal({ journal, nickname, view, onView, onUpdate, onDelete, o
   const [askDelete, setAskDelete] = useState<string | null>(null);
   const sorted = [...journal].sort((a, b) => b.ts - a.ts);
   const list = sorted.filter((e) => !e.tied);
-  const tied = sorted.filter((e) => e.tied);
+  const tied = sorted.filter((e) => e.tied && e.kind !== 'gua');
   const stats = journalStats(journal);
 
   return (
@@ -108,7 +110,7 @@ export function Journal({ journal, nickname, view, onView, onUpdate, onDelete, o
                   {e.outcome === 'pending' && e.reviewAt && `・${Number(e.reviewAt.slice(5, 7))}月${Number(e.reviewAt.slice(8))}日回看`}
                 </p>
               </div>
-              <GradeSeal grade={e.grade} size="sm" />
+              {e.kind === 'gua' ? <span class="grade-seal sm mid">卦</span> : <GradeSeal grade={e.grade} size="sm" />}
             </header>
             <p class="entry-q">
               {e.who && <span class="tag who-tag">{e.who}</span>}
@@ -116,11 +118,17 @@ export function Journal({ journal, nickname, view, onView, onUpdate, onDelete, o
               {e.question || <span class="muted">心中默念</span>}
             </p>
             <button class="entry-qian" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : e.id)}>
-              <b>第{cnNumber(e.qianNo)}签</b>　{e.qianGz}
-              <span class="muted">{expanded ? '收起' : '看签诗'}</span>
+              <b>{entryName(e)}</b>
+              {e.kind !== 'gua' && `　${e.qianGz}`}
+              <span class="muted">{expanded ? '收起' : e.kind === 'gua' ? '看卦' : '看签诗'}</span>
               <Icon name="chevron" size={18} />
             </button>
-            {expanded && <QianView qian={getQian(e.qianNo)} category={e.category} compact />}
+            {expanded &&
+              (e.kind === 'gua' && e.cast ? (
+                <DivineView d={divine(e.cast as LineValue[])} category={e.category} question={e.question} compact />
+              ) : (
+                <QianView qian={getQian(e.qianNo)} category={e.category} compact />
+              ))}
 
             <div class="seg" role="radiogroup" aria-label="是否应验">
               {OUTCOMES.map((o) => (
@@ -147,9 +155,11 @@ export function Journal({ journal, nickname, view, onView, onUpdate, onDelete, o
                 </div>
               ) : (
                 <>
-                  <button class="link" onClick={() => setCardFor(e)}>
-                    <Icon name="image" size={16} /> 签诗卡片
-                  </button>
+                  {e.kind !== 'gua' && (
+                    <button class="link" onClick={() => setCardFor(e)}>
+                      <Icon name="image" size={16} /> 签诗卡片
+                    </button>
+                  )}
                   <button class="link danger" onClick={() => setAskDelete(e.id)}>
                     <Icon name="trash" size={16} /> 删除
                   </button>
