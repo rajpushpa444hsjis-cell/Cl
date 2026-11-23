@@ -29,6 +29,7 @@ import {
 import type { AskMode } from './components/AskPicker';
 import { Divine } from './screens/Divine';
 import { Draw } from './screens/Draw';
+import { ZeRi } from './screens/ZeRi';
 import { Home } from './screens/Home';
 import { Journal } from './screens/Journal';
 import { Settings } from './screens/Settings';
@@ -212,6 +213,19 @@ export function App() {
             onOpenJournal={() => {
               setJournalView('book');
               switchTab('journal');
+            }}
+          />
+        </div>
+        <div hidden={tab !== 'draw' || askMode !== 'date'}>
+          <ZeRi
+            bazi={bazi}
+            todayKey={todayKey}
+            who={forOther ? current.nickname : undefined}
+            mode={askMode}
+            onMode={setAskMode}
+            onShowDay={(key) => {
+              setViewKey(key === todayKey ? null : key);
+              switchTab('home');
             }}
           />
         </div>

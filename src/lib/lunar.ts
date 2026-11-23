@@ -77,6 +77,8 @@ export interface DayInfo {
   chongSx: string; // 所冲生肖
   chongDesc: string; // (己卯)兔
   sha: string; // 煞方
+  tianShen: string; // 值日的天神，如 青龙
+  huangdao: boolean; // 黄道日（值日天神为黄道）
   jieqi: string; // 今天若为节气
 }
 
@@ -102,6 +104,8 @@ export function getDayInfo(date: Date): DayInfo {
     chongSx: l.getDayChongShengXiao(),
     chongDesc: l.getDayChongDesc(),
     sha: l.getDaySha(),
+    tianShen: l.getDayTianShen(),
+    huangdao: l.getDayTianShenType() === '黄道',
     jieqi: l.getJieQi(),
   };
 }

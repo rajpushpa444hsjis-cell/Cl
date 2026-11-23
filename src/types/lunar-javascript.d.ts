@@ -46,6 +46,8 @@ declare module 'lunar-javascript' {
     getDayChongShengXiao(): string;
     getDayChongDesc(): string;
     getDaySha(): string;
+    getDayTianShen(): string;
+    getDayTianShenType(): string;
     getJieQi(): string;
     getJieQiTable(): Record<string, Solar>;
     getEightChar(): EightChar;

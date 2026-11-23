@@ -1,16 +1,17 @@
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
 import { Icon } from './ui';
 
-export type AskMode = 'qian' | 'gua';
+export type AskMode = 'qian' | 'gua' | 'date';
 
-/** 问事的两种方式：求签、起卦。只在问事的第一屏出现。 */
+/** 问事的三种方式：求签、起卦、择日。求签与起卦只在第一屏出现。 */
 export function ModeSwitch(props: { mode: AskMode; onChange: (m: AskMode) => void }) {
   return (
-    <div class="seg two mode" role="tablist" aria-label="问事的方式">
+    <div class="seg three mode" role="tablist" aria-label="问事的方式">
       {(
         [
           ['qian', '求签'],
           ['gua', '起卦'],
+          ['date', '择日'],
         ] as const
       ).map(([id, label]) => (
         <button key={id} role="tab" aria-selected={props.mode === id} class={`seg-btn ${props.mode === id ? 'on' : ''}`} onClick={() => props.onChange(id)}>
