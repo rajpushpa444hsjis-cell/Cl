@@ -11,6 +11,7 @@ import type { JiaoResult, Toss } from '../lib/jiao';
 import { type Bazi, type DayInfo, HOURS } from '../lib/lunar';
 import { listenShake, motionSupport, requestMotionPermission } from '../lib/motion';
 import { personalReading } from '../lib/personal';
+import { REVIEW_CHOICES, reviewDate } from '../lib/review';
 import { QIAN_COUNT, cnNumber, getQian, gradeTone } from '../lib/qian';
 import { randInt } from '../lib/random';
 import { CATEGORIES, type CategoryId, type JournalEntry, type Profile, type Settings, categoryLabel, newId } from '../lib/storage';
@@ -31,6 +32,8 @@ const SHAKE_GOAL = 6;
 interface Props {
   active: boolean;
   profile: Profile;
+  /** 替家人求时，那位家人的称呼；自己求则不给。 */
+  who?: string;
   bazi: Bazi;
   day: DayInfo;
   fortune: DailyFortune;
@@ -38,6 +41,8 @@ interface Props {
   onSave: (e: JournalEntry) => void;
   /** 凶签系在架上、不带走：这一笔不列在签本，改放到签架。 */
   onTie: (id: string) => void;
+  /** 定下（或取消）回看的日子。 */
+  onReview: (id: string, reviewAt: string | undefined) => void;
   onOpenJournal: (view: 'book' | 'rack') => void;
 }
 
@@ -54,6 +59,7 @@ export function Draw(props: Props) {
   const [confirmFail, setConfirmFail] = useState<JiaoResult | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [tied, setTied] = useState(false);
+  const [reviewDays, setReviewDays] = useState<number | null>(null); // 解签后选的“几天后回看”
   const [picking, setPicking] = useState(true); // 问事这一步：true 在选类别，false 在选问法
   // 掷筊确认要几个圣筊；0 是不掷筊，摇到哪支取哪支
   const needed = settings.confirmMode;
@@ -222,6 +228,7 @@ export function Draw(props: Props) {
       grade: q.grade,
       outcome: 'pending',
       note: '',
+      ...(props.who ? { who: props.who } : {}),
     };
     props.onSave(entry);
     setSavedId(entry.id);
@@ -236,7 +243,15 @@ export function Draw(props: Props) {
     requestAnimationFrame(scrollTop);
   };
 
+  // 回看：再点一次同一个就取消
+  const pickReview = (days: number) => {
+    const next = reviewDays === days ? null : days;
+    setReviewDays(next);
+    if (savedId) props.onReview(savedId, next ? reviewDate(day.key, next) : undefined);
+  };
+
   const restart = () => {
+    setReviewDays(null);
     setPicking(true);
     setCategory(null);
     setQuestion('');
@@ -448,6 +463,17 @@ export function Draw(props: Props) {
         <>
           <div class="sheet">
             <QianView qian={qian} category={category} personal={personalReading(qian, bazi, day, props.fortune)} />
+          </div>
+          {/* 定一个回看的日子：到了那天，首页会提醒回来标记有没有应验 */}
+          <div class="review-pick" role="group" aria-label="回看">
+            <span>到时候提醒我回来看</span>
+            <div>
+              {REVIEW_CHOICES.map((c) => (
+                <button key={c.days} class={`cat ${reviewDays === c.days ? 'on' : ''}`} aria-pressed={reviewDays === c.days} onClick={() => pickReview(c.days)}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div class="actions">
             <button class="btn primary big" onClick={() => props.onOpenJournal('book')}>查看签本</button>

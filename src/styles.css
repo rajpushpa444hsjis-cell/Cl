@@ -501,6 +501,265 @@ input[type='checkbox'] {
 }
 
 /* ===== 首页 ===== */
+/* 封面右上角：切换看谁的、打开月历 */
+.cover-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
+  margin: -6px 0 6px;
+}
+.cover-top .cover-eyebrow {
+  margin: 0;
+}
+.cover-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: -8px;
+}
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 12px 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cell);
+  color: var(--ink);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.link.back-today {
+  margin-top: 8px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+/* 回看：到了日子的签，问一句应验了没有 */
+.review {
+  margin-top: 22px;
+  padding: 18px 20px 16px;
+  border-radius: var(--radius-s);
+  background: var(--cell);
+}
+.review p {
+  margin: 0 0 12px;
+}
+.review-acts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.review-acts button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.review-acts button:first-child {
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--on-ink);
+}
+
+/* 十二时辰：六格两排 */
+.hour-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px 6px;
+}
+.hour {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 9px 0 8px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.hour b {
+  font-size: 17px;
+  font-weight: 400;
+}
+.hour span {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink-2);
+}
+.hour.xiong b,
+.hour.xiong span {
+  color: var(--ink-3);
+}
+.hour.chong span {
+  color: var(--accent);
+}
+.hour.now {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.hour.on {
+  background: var(--cell);
+}
+.hour-detail {
+  margin-top: 20px;
+}
+.hour-line {
+  margin: 0 0 14px;
+  color: var(--ink-2);
+  letter-spacing: 0.04em;
+}
+.hour-line b {
+  margin-right: 0.8em;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* 月历 */
+.month-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -4px -8px 8px;
+}
+.month-nav b {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px 0;
+}
+.month-grid .wk {
+  padding: 4px 0 8px;
+  color: var(--ink-3);
+  font-size: 13px;
+  text-align: center;
+}
+.mday {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  padding: 7px 0 6px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mday b {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+.mday span {
+  color: var(--ink-3);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.mday.chong b {
+  color: var(--accent);
+}
+.mday.today {
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.mday.sel {
+  background: var(--ink);
+}
+.mday.sel b,
+.mday.sel span {
+  color: var(--on-ink);
+}
+.who-list {
+  border-top: 1px solid var(--line);
+}
+
+/* 解签后：定一个回看的日子 */
+.review-pick {
+  margin: 30px 0 4px;
+}
+.review-pick > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ink-2);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+.review-pick > div {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.review-pick .cat {
+  min-height: 44px;
+  font-size: 15px;
+}
+
+/* 签本的统计 */
+.stats {
+  margin: 0 0 22px;
+  border-top: 1px solid var(--line);
+}
+.stats div {
+  display: grid;
+  grid-template-columns: 3.2em 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.stats dt {
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+}
+.stats dd {
+  margin: 0;
+}
+.tag.who-tag {
+  box-shadow: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* 设置里的家人 */
+.people {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.people li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.person {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.person b {
+  display: block;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.person span {
+  color: var(--ink-2);
+  font-size: 15px;
+}
+
 .cover-note {
   /* 今日冲生肖：封面下的一行，不另外框起来 */
   margin: 14px 0 0;

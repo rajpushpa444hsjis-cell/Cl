@@ -25,6 +25,13 @@ export interface Profile {
   birth: Birth;
 }
 
+/** 家人：另外存的几份资料，切换后替他们看运势、求签。自己的那一份仍是 Profile。 */
+export interface Person extends Profile {
+  id: string;
+}
+/** 现在看的是谁：'self' 为自己，否则是某位家人的 id。 */
+export const SELF = 'self';
+
 export type ThemePref = 'system' | 'light' | 'dark';
 export interface Settings {
   confirmMode: 0 | 1 | 3; // 掷筊确认：一个圣筊或连续三个圣筊；0 为不掷筊，摇到哪支取哪支
@@ -51,12 +58,18 @@ export interface JournalEntry {
   note: string;
   /** 凶签系在签架上：不列在签本里，改放在签架。 */
   tied?: boolean;
+  /** 替家人求的签：记下当时的称呼；自己求的不记。 */
+  who?: string;
+  /** 回看的日子（YYYY-MM-DD）：到了这天，首页提醒回来标记有没有应验。 */
+  reviewAt?: string;
 }
 
 const K = {
   profile: 'jryq.profile.v1',
   settings: 'jryq.settings.v1',
   journal: 'jryq.journal.v1',
+  people: 'jryq.people.v1',
+  active: 'jryq.active.v1',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -82,6 +95,10 @@ export const loadSettings = (): Settings => ({ ...DEFAULT_SETTINGS, ...read<Part
 export const saveSettings = (s: Settings) => write(K.settings, s);
 export const loadJournal = () => read<JournalEntry[]>(K.journal, []);
 export const saveJournal = (j: JournalEntry[]) => write(K.journal, j);
+export const loadPeople = () => read<Person[]>(K.people, []);
+export const savePeople = (p: Person[]) => write(K.people, p);
+export const loadActive = () => read<string>(K.active, SELF);
+export const saveActive = (id: string) => write(K.active, id);
 
 export function newId(): string {
   const a = new Uint32Array(2);
@@ -96,6 +113,7 @@ export interface Backup {
   profile: Profile | null;
   settings: Settings;
   journal: JournalEntry[];
+  people?: Person[];
 }
 
 export function makeBackup(): Backup {
@@ -106,6 +124,7 @@ export function makeBackup(): Backup {
     profile: loadProfile(),
     settings: loadSettings(),
     journal: loadJournal(),
+    people: loadPeople(),
   };
 }
 

@@ -3,10 +3,13 @@ import { ProfileForm } from '../components/ProfileForm';
 import { ScreenHeader } from '../components/ui';
 import { canVibrate } from '../lib/haptics';
 import { saveFile } from '../lib/platform';
-import { type Backup, type Profile, type Settings as S, type ThemePref, makeBackup, parseBackup } from '../lib/storage';
+import { computeBazi } from '../lib/lunar';
+import { type Backup, type Person, type Profile, type Settings as S, type ThemePref, makeBackup, newId, parseBackup } from '../lib/storage';
 
 interface Props {
   profile: Profile;
+  people: Person[];
+  onPeople: (list: Person[]) => void;
   settings: S;
   onProfile: (p: Profile) => void;
   onSettings: (s: S) => void;
@@ -20,6 +23,8 @@ export function Settings(props: Props) {
   const [dataMsg, setDataMsg] = useState('');
   const [pending, setPending] = useState<Backup | null>(null); // 等待确认的导入
   const [askClear, setAskClear] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null); // 家人：正在编辑的 id，'new' 为新增
+  const [askRemove, setAskRemove] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<S>) => props.onSettings({ ...s, ...patch });
 
@@ -59,6 +64,72 @@ export function Settings(props: Props) {
           }}
         />
         {savedMsg && <p class="hint center" role="status">{savedMsg}</p>}
+      </div>
+
+      {/* 家人：多存几份资料，在首页右上角切换，替他们看运势、求签 */}
+      <div class="card">
+        <h2 class="card-title">家人</h2>
+        {props.people.length > 0 && (
+          <ul class="people">
+            {props.people.map((p) => {
+              const b = computeBazi(p.birth);
+              return (
+                <li key={p.id}>
+                  {editing === p.id ? (
+                    <ProfileForm
+                      initial={p}
+                      submitLabel="保存"
+                      onSubmit={(v) => {
+                        props.onPeople(props.people.map((x) => (x.id === p.id ? { ...v, id: p.id } : x)));
+                        setEditing(null);
+                      }}
+                    />
+                  ) : (
+                    <div class="person">
+                      <div>
+                        <b>{p.nickname}</b>
+                        <span>
+                          属{b.shengxiao}・日主{b.dayMaster}{b.element}
+                        </span>
+                      </div>
+                      {askRemove === p.id ? (
+                        <div class="confirm-inline" role="group" aria-label="确认删除">
+                          <button class="link" onClick={() => setAskRemove(null)}>取消</button>
+                          <button
+                            class="link danger strong"
+                            onClick={() => {
+                              props.onPeople(props.people.filter((x) => x.id !== p.id));
+                              setAskRemove(null);
+                            }}
+                          >
+                            确定删除
+                          </button>
+                        </div>
+                      ) : (
+                        <div class="confirm-inline">
+                          <button class="link" onClick={() => { setEditing(p.id); setAskRemove(null); }}>编辑</button>
+                          <button class="link danger" onClick={() => setAskRemove(p.id)}>删除</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {editing === 'new' ? (
+          <ProfileForm
+            key="new"
+            submitLabel="添加"
+            onSubmit={(v) => {
+              props.onPeople([...props.people, { ...v, id: newId() }]);
+              setEditing(null);
+            }}
+          />
+        ) : (
+          <button class="btn ghost big" onClick={() => setEditing('new')}>添加家人</button>
+        )}
       </div>
 
       <div class="card">

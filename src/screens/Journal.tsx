@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { QianView } from '../components/QianView';
 import { GradeSeal, Icon, Modal, ScreenHeader } from '../components/ui';
 import { cnNumber, getQian } from '../lib/qian';
+import { journalStats } from '../lib/review';
 import { type JournalEntry, type Outcome, categoryLabel } from '../lib/storage';
 
 const OUTCOMES: { id: Outcome; label: string }[] = [
@@ -28,8 +29,7 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
   const sorted = [...journal].sort((a, b) => b.ts - a.ts);
   const list = sorted.filter((e) => !e.tied);
   const tied = sorted.filter((e) => e.tied);
-  const yes = list.filter((j) => j.outcome === 'yes').length;
-  const no = list.filter((j) => j.outcome === 'no').length;
+  const stats = journalStats(journal);
 
   return (
     <section class="screen-body">
@@ -39,7 +39,7 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
           view === 'rack'
             ? '系在这里的凶签，不带回去'
             : list.length
-              ? `${list.length} 签・应验 ${yes}・未应验 ${no}`
+              ? `${list.length} 签`
               : '求到的签都记在这里'
         }
       />
@@ -61,6 +61,26 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
         />
       )}
 
+      {/* 累积多了才显示：已标记的签里应验占多少、最常问哪几类 */}
+      {view === 'book' && (stats.rate !== null || stats.total >= 3) && (
+        <dl class="stats">
+          {stats.rate !== null && (
+            <div>
+              <dt>应验</dt>
+              <dd>
+                {stats.yes + stats.no} 支有了结果，{stats.yes} 支应验，占 {stats.rate}%
+              </dd>
+            </div>
+          )}
+          {stats.total >= 3 && (
+            <div>
+              <dt>常问</dt>
+              <dd>{stats.top.map((t) => `${categoryLabel(t.id)} ${t.n}`).join('・')}</dd>
+            </div>
+          )}
+        </dl>
+      )}
+
       {view === 'book' && list.length === 0 && (
         <div class="card empty">
           <p>还没有求过签</p>
@@ -78,11 +98,15 @@ export function Journal({ journal, view, onView, onUpdate, onDelete, onDraw }: P
                 <p class="entry-date">
                   {e.solarText} {String(time.getHours()).padStart(2, '0')}:{String(time.getMinutes()).padStart(2, '0')}
                 </p>
-                <p class="entry-sub">农历{e.lunarText}・{e.dayGz}日</p>
+                <p class="entry-sub">
+                  农历{e.lunarText}・{e.dayGz}日
+                  {e.outcome === 'pending' && e.reviewAt && `・${Number(e.reviewAt.slice(5, 7))}月${Number(e.reviewAt.slice(8))}日回看`}
+                </p>
               </div>
               <GradeSeal grade={e.grade} size="sm" />
             </header>
             <p class="entry-q">
+              {e.who && <span class="tag who-tag">{e.who}</span>}
               <span class="tag">{categoryLabel(e.category)}</span>
               {e.question || <span class="muted">心中默念</span>}
             </p>
@@ -174,6 +198,7 @@ function Rack(props: { list: JournalEntry[]; onUntie: (id: string) => void; onDe
           <>
             <p class="entry-sub">{cur.solarText}・农历{cur.lunarText}</p>
             <p class="entry-q">
+              {cur.who && <span class="tag who-tag">{cur.who}</span>}
               <span class="tag">{categoryLabel(cur.category)}</span>
               {cur.question || <span class="muted">心中默念</span>}
             </p>

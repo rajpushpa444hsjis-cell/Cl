@@ -5,17 +5,24 @@ import { setSoundEnabled } from './lib/audio';
 import { dailyGua } from './lib/dailyGua';
 import { dailyFortune } from './lib/fortune';
 import { setVibrateEnabled } from './lib/haptics';
-import { computeBazi, dateKey, getDayInfo } from './lib/lunar';
+import { addDays, computeBazi, dateKey, getDayInfo, parseKey } from './lib/lunar';
+import { dueReviews } from './lib/review';
 import {
   type Backup,
   type JournalEntry,
+  type Person,
   type Profile,
+  SELF,
   type Settings as S,
   clearAll,
+  loadActive,
   loadJournal,
+  loadPeople,
   loadProfile,
   loadSettings,
+  saveActive,
   saveJournal,
+  savePeople,
   saveProfile,
   saveSettings,
 } from './lib/storage';
@@ -53,6 +60,9 @@ export function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [journalView, setJournalView] = useState<'book' | 'rack'>('book');
   const [now, setNow] = useState(() => new Date());
+  const [people, setPeople] = useState<Person[]>(loadPeople); // 家人
+  const [activeId, setActiveId] = useState<string>(loadActive); // 现在看的是谁
+  const [viewKey, setViewKey] = useState<string | null>(null); // 首页正在看的日子；null 为今天
 
   // 主题、音效、震动
   useEffect(() => {
@@ -78,13 +88,21 @@ export function App() {
 
   const todayKey = dateKey(now);
   const day = useMemo(() => getDayInfo(now), [todayKey]);
-  const bazi = useMemo(() => (profile ? computeBazi(profile.birth) : null), [profile]);
-  const fortune = useMemo(
-    () => (profile && bazi ? dailyFortune(bazi, day, `${profile.nickname}|${profile.birth.y}${profile.birth.m}${profile.birth.d}`) : null),
-    [profile, bazi, day],
-  );
+  // 现在看的这个人：自己，或切换到的某位家人（找不到就回到自己）
+  const current: Profile | null = useMemo(() => people.find((p) => p.id === activeId) ?? profile, [people, activeId, profile]);
+  const forOther = !!current && current !== profile;
+  const seed = current ? `${current.nickname}|${current.birth.y}${current.birth.m}${current.birth.d}` : '';
+  const bazi = useMemo(() => (current ? computeBazi(current.birth) : null), [current]);
+  const fortune = useMemo(() => (current && bazi ? dailyFortune(bazi, day, seed) : null), [current, bazi, day]);
+  const gua = useMemo(() => (current ? dailyGua(current.birth, day.key) : null), [current, day]);
 
-  const gua = useMemo(() => (profile ? dailyGua(profile.birth, day.key) : null), [profile, day]);
+  // 首页可以从月历点到别的日子；求签一律用今天
+  const viewing = viewKey && viewKey !== todayKey ? viewKey : null;
+  const viewDay = useMemo(() => (viewing ? getDayInfo(parseKey(viewing)) : day), [viewing, day]);
+  const viewFortune = useMemo(() => (viewing && current && bazi ? dailyFortune(bazi, viewDay, seed) : fortune), [viewing, current, bazi, viewDay, fortune]);
+  const viewGua = useMemo(() => (viewing && current ? dailyGua(current.birth, viewDay.key) : gua), [viewing, current, viewDay, gua]);
+
+  const due = useMemo(() => dueReviews(journal, todayKey), [journal, todayKey]);
 
   const switchTab = (t: Tab) => {
     setTab(t);
@@ -99,8 +117,18 @@ export function App() {
     setJournal(j);
     saveJournal(j);
   };
+  const patchEntry = (id: string, patch: Partial<JournalEntry>) => updateJournal(journal.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const updatePeople = (list: Person[]) => {
+    setPeople(list);
+    savePeople(list);
+    if (activeId !== SELF && !list.some((p) => p.id === activeId)) switchPerson(SELF); // 正在看的人被删了，回到自己
+  };
+  const switchPerson = (id: string) => {
+    setActiveId(id);
+    saveActive(id);
+  };
 
-  if (!profile || !bazi || !fortune || !gua) {
+  if (!profile || !current || !bazi || !fortune || !gua || !viewFortune || !viewGua) {
     return (
       <div class="app onboarding">
         <header class="cover">
@@ -125,18 +153,38 @@ export function App() {
     <div class="app">
       <main>
         <div hidden={tab !== 'home'}>
-          <Home profile={profile} day={day} fortune={fortune} gua={gua} drawLabel={settings.confirmMode === 0 ? '求签' : '掷筊求签'} onDraw={() => switchTab('draw')} />
+          <Home
+            profile={current}
+            bazi={bazi}
+            day={viewDay}
+            isToday={!viewing}
+            todayKey={todayKey}
+            fortune={viewFortune}
+            gua={viewGua}
+            drawLabel={settings.confirmMode === 0 ? '求签' : '掷筊求签'}
+            onDraw={() => switchTab('draw')}
+            onPickDay={setViewKey}
+            people={[{ id: SELF, nickname: profile.nickname }, ...people]}
+            activeId={forOther ? activeId : SELF}
+            onSwitch={switchPerson}
+            due={due}
+            onReview={(id, answer) =>
+              patchEntry(id, answer === 'later' ? { reviewAt: addDays(todayKey, 7) } : { outcome: answer })
+            }
+          />
         </div>
         <div hidden={tab !== 'draw'}>
           <Draw
             active={tab === 'draw'}
-            profile={profile}
+            profile={current}
+            who={forOther ? current.nickname : undefined}
             bazi={bazi}
             day={day}
             fortune={fortune}
             settings={settings}
             onSave={(e) => updateJournal([e, ...journal])}
-            onTie={(id) => updateJournal(journal.map((e) => (e.id === id ? { ...e, tied: true } : e)))}
+            onTie={(id) => patchEntry(id, { tied: true, reviewAt: undefined })}
+            onReview={(id, reviewAt) => patchEntry(id, { reviewAt })}
             onOpenJournal={(view) => {
               setJournalView(view);
               switchTab('journal');
@@ -148,7 +196,7 @@ export function App() {
             journal={journal}
             view={journalView}
             onView={setJournalView}
-            onUpdate={(id, patch) => updateJournal(journal.map((e) => (e.id === id ? { ...e, ...patch } : e)))}
+            onUpdate={patchEntry}
             onDelete={(id) => updateJournal(journal.filter((e) => e.id !== id))}
             onDraw={() => switchTab('draw')}
           />
@@ -156,6 +204,8 @@ export function App() {
         {tab === 'settings' && (
           <Settings
             profile={profile}
+            people={people}
+            onPeople={updatePeople}
             settings={settings}
             onProfile={(p) => {
               saveProfile(p);
@@ -169,11 +219,15 @@ export function App() {
               }
               updateSettings({ ...settings, ...b.settings });
               updateJournal(b.journal);
+              updatePeople(b.people ?? []);
             }}
             onClear={() => {
               clearAll();
               setJournal([]);
               setSettings(loadSettings());
+              setPeople([]);
+              setActiveId(SELF);
+              setViewKey(null);
               setProfile(null);
               setTab('home');
             }}

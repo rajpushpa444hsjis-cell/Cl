@@ -106,6 +106,56 @@ export function getDayInfo(date: Date): DayInfo {
   };
 }
 
+export interface HourInfo {
+  zhi: string; // 子
+  range: string; // 这一格所指的时段，如 13:00–14:59
+  gz: string; // 时柱干支
+  god: string; // 值时的天神，如 青龙
+  type: string; // 黄道／黑道
+  lucky: boolean; // 黄道为吉
+  chongSx: string; // 这个时辰所冲的生肖
+  yi: string[];
+  ji: string[];
+}
+
+const listed = (a: string[]) => a.filter((x) => x && x !== '无');
+
+/**
+ * 当天十二个时辰（子、丑…亥）的干支、值时天神（黄道为吉、黑道为凶）、所冲生肖与宜忌，全部取自函数库。
+ * 函数库把一天分成十三段：0 点的早子时、丑…亥、23 点的晚子时（晚子时的干支已属隔天）。
+ * 这里排成十二格：平常第一格是早子时；lateZi 为真（看的是今天，而且已过 23 点）时，第一格换成晚子时。
+ */
+export function getHours(date: Date, lateZi = false): HourInfo[] {
+  const ts = Solar.fromYmd(date.getFullYear(), date.getMonth() + 1, date.getDate()).getLunar().getTimes();
+  const pick = lateZi ? [ts[12], ...ts.slice(1, 12)] : ts.slice(0, 12);
+  return pick.map((t) => ({
+    zhi: t.getZhi(),
+    range: `${t.getMinHm()}–${t.getMaxHm()}`,
+    gz: t.getGanZhi(),
+    god: t.getTianShen(),
+    type: t.getTianShenType(),
+    lucky: t.getTianShenLuck() === '吉',
+    chongSx: t.getChongShengXiao(),
+    yi: listed(t.getYi()),
+    ji: listed(t.getJi()),
+  }));
+}
+
+/** 某个时刻落在十二格里的第几格：23 点后与 0 点都是子时（第 0 格）。 */
+export const hourIndex = (d: Date): number => Math.floor(((d.getHours() + 1) % 24) / 2);
+
+/** YYYY-MM-DD → 当地时间的日期。 */
+export function parseKey(key: string): Date {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+/** 往后（或往前）数几天。 */
+export function addDays(key: string, n: number): string {
+  const d = parseKey(key);
+  d.setDate(d.getDate() + n);
+  return dateKey(d);
+}
+
 /** 时辰。hour/minute 为换算八字时采用的代表时刻。 */
 export const HOURS = [
   { key: 'zi-early', label: '早子时', range: '00:00–00:59', hour: 0, minute: 30 },

@@ -13,7 +13,21 @@ declare module 'lunar-javascript' {
     getDayGan(): string;
     getDayWuXing(): string;
   }
+  /** 一天里的一个时辰。 */
+  export interface LunarTime {
+    getZhi(): string;
+    getGanZhi(): string;
+    getMinHm(): string;
+    getMaxHm(): string;
+    getTianShen(): string;
+    getTianShenType(): string;
+    getTianShenLuck(): string;
+    getChongShengXiao(): string;
+    getYi(): string[];
+    getJi(): string[];
+  }
   export interface Lunar {
+    getTimes(): LunarTime[];
     getYearInGanZhi(): string;
     getYearInGanZhiByLiChun(): string;
     getMonthInGanZhi(): string;
