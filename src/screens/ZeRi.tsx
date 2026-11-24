@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import { type AskMode, ModeSwitch } from '../components/AskPicker';
+import { Terms } from '../components/Terms';
 import { Icon, ScreenHeader } from '../components/ui';
 import { type Bazi, addDays } from '../lib/lunar';
 import { ACTIVITIES, type Activity, pickDays } from '../lib/zeri';
@@ -95,6 +96,8 @@ export function ZeRi(props: Props) {
           <p class="aside">已避开冲{props.bazi.shengxiao}的日子・点一天看那天的运势</p>
         </section>
       )}
+
+      <Terms group="zeri" title="这些词是什么意思" />
     </section>
   );
 }

@@ -3,6 +3,7 @@ import type { PersonalLine } from '../lib/personal';
 import { type Advice, type Gua, type Qian, cnNumber } from '../lib/qian';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
 import { GuaFig } from './GuaFig';
+import { Terms } from './Terms';
 import { GradeSeal } from './ui';
 
 function AdviceRows(props: { a: Advice }) {
@@ -209,6 +210,7 @@ export function QianView(props: { qian: Qian; category: CategoryId; personal?: P
               </ul>
             </details>
           )}
+          <Terms group="qian" title="签上的字是什么意思" />
         </div>
       )}
     </article>

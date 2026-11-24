@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { GuaFig } from '../components/GuaFig';
+import { Terms } from '../components/Terms';
 import { CardSheet } from '../components/CardSheet';
 import { MonthSheet } from '../components/MonthSheet';
 import { Icon, Modal } from '../components/ui';
 import { renderFortuneCard } from '../lib/card';
+import { guaImage, positionText } from '../lib/divine';
 import type { DailyGua } from '../lib/dailyGua';
 import type { DailyFortune } from '../lib/fortune';
 import { type Bazi, type DayInfo, getHours, hourIndex, parseKey } from '../lib/lunar';
@@ -115,22 +117,41 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
         <p>{f.line}</p>
       </section>
 
+      {/* 今日一卦：先说这一卦的样子与今天的意思，再分三段——关键、你和外界、走向；术语放在灰色小字里 */}
       <section class="sec">
+        <p class="eyebrow">{isToday ? '今日一卦' : '这天的卦'}</p>
         <div class="gua-row">
-          <GuaFig lines={gua.lines} moving={gua.moving} label={`今日一卦：${gua.full}，动爻${gua.yao.label}`} />
+          <GuaFig lines={gua.lines} moving={gua.moving} label={`${gua.full}，第${CN[gua.moving - 1]}爻会变`} />
           <div>
             <h2 class="theme">{gua.full}</h2>
             <p class="lead">{gua.theme}</p>
           </div>
         </div>
+        <p class="soft">{guaImage(gua.no)}</p>
         <p>{gua.text}</p>
-        <p class="yao" lang="zh-Hans">
-          <b>{gua.yao.label}</b>
-          {gua.yao.text}
-        </p>
-        <p>{gua.yao.reading}</p>
-        <p class="soft">{gua.tiyongText}</p>
-        <p class="soft">{gua.changeText}</p>
+
+        <div class="gua-part">
+          <p class="divine-label">关键・第{CN[gua.moving - 1]}爻</p>
+          <p class="divine-pos">{positionText(gua.moving)}</p>
+          <p class="yao" lang="zh-Hans">
+            <b>{gua.yao.label}</b>
+            {gua.yao.text}
+          </p>
+          <p>{gua.yao.reading}</p>
+        </div>
+        <div class="gua-part">
+          <p class="divine-label">你和外界</p>
+          <p>{gua.tiyongPlain}</p>
+          <p class="divine-pos">{gua.tiyongTech}</p>
+        </div>
+        <div class="gua-part">
+          <p class="divine-label">走向</p>
+          <p>{gua.changeTo}</p>
+          <p class="divine-pos">
+            会变的那一爻翻过来，变成{gua.changed.full}（{gua.changed.theme}）
+          </p>
+        </div>
+        <Terms group="daily" />
       </section>
 
       <section class="sec">
@@ -238,6 +259,8 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
     </section>
   );
 }
+
+const CN = ['一', '二', '三', '四', '五', '六'];
 
 /** 2026-11-17 → 11月17日 */
 function md(key: string): string {

@@ -28,8 +28,13 @@ export interface DailyGua extends GuaBase {
   yong: Trigram;
   relation: TiYong;
   tiyongText: string;
+  /** 体用拆开：白话的那一句，与“山为体，风为用，木克土”这样的术语。 */
+  tiyongPlain: string;
+  tiyongTech: string;
   changed: GuaBase & { theme: string };
   changeText: string;
+  /** 变卦代表的走向（白话）。 */
+  changeTo: string;
 }
 
 type HexText = { theme: string; text: string; to: string; yao: string[] };
@@ -72,7 +77,10 @@ export function dailyGua(birth: Birth, dayKey: string): DailyGua {
     yong,
     relation,
     tiyongText: TIYONG[ti.name + yong.name],
+    tiyongTech: TIYONG[ti.name + yong.name].split('：')[0],
+    tiyongPlain: TIYONG[ti.name + yong.name].slice(TIYONG[ti.name + yong.name].indexOf('：') + 1),
     changed: { ...changed, theme: HEX[changed.no].theme },
     changeText: `变卦${changed.full}：${HEX[changed.no].to}`,
+    changeTo: HEX[changed.no].to,
   };
 }

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import data from '../src/data/divine.json';
 import yaoData from '../src/data/yao.json';
-import { type LineValue, castTitle, coinsValue, divine, isMoving, isYang, tossCoins } from '../src/lib/divine';
+import { type LineValue, castTitle, coinsValue, divine, guaGist, guaImage, isMoving, isYang, positionText, tossCoins } from '../src/lib/divine';
+import { dailyGua } from '../src/lib/dailyGua';
+import { dateKey } from '../src/lib/lunar';
+import terms from '../src/data/terms.json';
+import { CATEGORIES } from '../src/lib/storage';
 import { cryptoRng } from '../src/lib/random';
 
 const YAO = yaoData.hexagrams as Record<string, { lines: { label: string }[]; extra?: { label: string } }>;
@@ -121,5 +125,46 @@ describe('起卦的文字', () => {
     expect(Object.keys(data.extra)).toEqual(['用九', '用六']);
     expect(YAO[1].extra?.label).toBe('用九');
     expect(YAO[2].extra?.label).toBe('用六');
+  });
+});
+
+describe('讲得白话一点', () => {
+  it('六十四卦各有一句“这一卦的样子”，互不相同', () => {
+    const all = Array.from({ length: 64 }, (_, i) => guaImage(i + 1));
+    for (const t of all) expect(t).toMatch(/象征/);
+    expect(new Set(all).size).toBe(64);
+  });
+
+  it('六十四卦在十二个方面各有一句八字以内的话，同一个方面里互不相同', () => {
+    for (const c of CATEGORIES) {
+      const list = Array.from({ length: 64 }, (_, i) => guaGist(i + 1, c.id));
+      for (const t of list) {
+        expect(t.length, `${c.label}：${t}`).toBeGreaterThanOrEqual(2);
+        expect(t.length, `${c.label}：${t}`).toBeLessThanOrEqual(8);
+        expect(t).not.toMatch(/[，。！？\s]/);
+      }
+      expect(new Set(list).size, c.label).toBe(64);
+    }
+  });
+
+  it('六个爻位、七条规则都有白话；规则不再用“爻辞”“卦辞”这种词', () => {
+    for (let p = 1; p <= 6; p++) expect(positionText(p).length).toBeGreaterThan(8);
+    for (const r of Object.values(data.rules)) expect(r).not.toMatch(/爻辞|卦辞/);
+  });
+
+  it('看不懂的词：四组都有，起卦那一组讲到本卦、变卦、动爻和怎么算', () => {
+    for (const g of ['divine', 'daily', 'zeri', 'qian'] as const) expect((terms[g] as string[][]).length).toBeGreaterThan(3);
+    const words = (terms.divine as string[][]).map((t) => t[0]).join('');
+    for (const w of ['本卦', '变卦', '动爻', '掷钱怎么算']) expect(words).toContain(w);
+  });
+
+  it('今日一卦的“你和外界”拆成白话与术语两段，拼回去就是原句', () => {
+    for (let i = 0; i < 40; i++) {
+      const g = dailyGua({ y: 1990, m: 3, d: 8, hour: null }, dateKey(new Date(2026, 10, 1 + i)));
+      expect(g.tiyongTech).toMatch(/^.为体，.为用，/);
+      expect(g.tiyongPlain).not.toMatch(/为体|为用/);
+      expect(`${g.tiyongTech}：${g.tiyongPlain}`).toBe(g.tiyongText);
+      expect(g.changeText).toBe(`变卦${g.changed.full}：${g.changeTo}`);
+    }
   });
 });

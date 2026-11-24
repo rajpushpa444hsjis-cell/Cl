@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type AskMode, AskPicker, ModeSwitch, nextQuestion } from '../components/AskPicker';
 import { DivineView } from '../components/DivineView';
+import { Terms } from '../components/Terms';
 import { Footer, ScreenHeader } from '../components/ui';
 import { playBell, playCoins, unlockAudio } from '../lib/audio';
 import { type Coin, type LineValue, coinsValue, divine, isMoving, isYang, tossCoins, valueCoins, valueMark, valueName } from '../lib/divine';
@@ -229,7 +230,11 @@ export function Divine(props: Props) {
             ))}
           </div>
           <p class="cast-last" aria-live="polite">
-            {last && !busy ? `${POS[values.length - 1]}爻　${valueCoins(last)}，${valueName(last)}` : busy ? ' ' : '心里默念所问之事，由下往上起'}
+            {last && !busy
+              ? `${POS[values.length - 1]}爻　${valueCoins(last)}，${valueName(last)}${isMoving(last) ? '，这一爻会变' : ''}`
+              : busy
+                ? ' '
+                : '心里默念所问之事，由下往上起'}
           </p>
           {values.length < 6 ? (
             <button class="btn primary big" disabled={busy} onClick={toss}>
@@ -240,6 +245,7 @@ export function Divine(props: Props) {
               看卦
             </button>
           )}
+          <Terms group="divine" title="怎么算、这些词是什么意思" />
         </div>
       )}
 

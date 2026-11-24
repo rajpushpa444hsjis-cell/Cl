@@ -10,6 +10,7 @@ import data from '../data/divine.json';
 import yaoData from '../data/yao.json';
 import { type GuaBase, guaOfLines } from './gua';
 import { type Rng, cryptoRng, randInt } from './random';
+import type { CategoryId } from './storage';
 
 export type LineValue = 6 | 7 | 8 | 9;
 /** 一枚钱：1 为背、0 为字。 */
@@ -22,6 +23,18 @@ const JUDGMENT = data.judgment as Record<string, string>;
 const EXTRA = data.extra as Record<string, string>;
 const RULES = data.rules as Record<string, string>;
 const VALUES = data.values as Record<string, { name: string; coins: string; mark: string }>;
+const IMAGE = data.image as Record<string, string>;
+const GIST = data.gist as Record<string, Record<CategoryId, string>>;
+const POSITIONS = data.positions as Record<string, string>;
+
+/** 这一卦的样子（卦象）的白话。 */
+export const guaImage = (no: number) => IMAGE[no];
+/** 这一卦在某个方面的一句话。 */
+export const guaGist = (no: number, cat: CategoryId) => GIST[no][cat];
+/** 第几爻（1–6，由下往上）代表什么。 */
+export const positionText = (pos: number) => POSITIONS[pos];
+/** 卦辞的白话（针对所问之事）。 */
+export const judgmentReading = (no: number) => JUDGMENT[no];
 
 /** 掷一次：三枚钱。 */
 export function tossCoins(rng: Rng = cryptoRng): Coin[] {
@@ -41,6 +54,7 @@ export interface Focus {
   kind: 'judgment' | 'line' | 'extra';
   pos?: number; // 第几爻，1–6 由下往上
   label: string; // 本卦卦辞／本卦・九三／变卦・六二／用九
+  tag?: string; // 爻题，如 九三（只有爻才有）
   text: string; // 原文
   reading: string; // 白话
   main: boolean; // 以这一句为主
@@ -73,7 +87,7 @@ export function divine(values: LineValue[]): Divination {
   });
   const line = (g: GuaBase, from: Focus['from'], pos: number, main: boolean): Focus => {
     const l = YAO[g.no].lines[pos - 1];
-    return { from, kind: 'line', pos, label: `${from === 'base' ? '本卦' : '变卦'}・${l.label}`, text: l.text, reading: DAILY[g.no].yao[pos - 1], main };
+    return { from, kind: 'line', pos, label: `${from === 'base' ? '本卦' : '变卦'}・${l.label}`, tag: l.label, text: l.text, reading: DAILY[g.no].yao[pos - 1], main };
   };
 
   let focus: Focus[];

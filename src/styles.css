@@ -1818,6 +1818,84 @@ p.verdict {
   margin: -6px 0 20px;
 }
 
+/* ===== 白话的分段与“看不懂的词” ===== */
+.gua-part {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.gua-part > p {
+  margin: 0 0 8px;
+}
+.gua-part > p:last-child {
+  margin-bottom: 0;
+}
+.gua-part .yao {
+  margin: 10px 0 10px;
+}
+.divine-pos {
+  margin: -4px 0 10px !important;
+  color: var(--ink-3);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.gua-part > .divine-pos:last-child {
+  margin: 6px 0 0 !important;
+}
+.divine-q {
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.divine-more {
+  margin: 12px 0 0 !important;
+  color: var(--ink-2);
+}
+.qian-answer i {
+  margin: 0 0.6em;
+  color: var(--ink-3);
+  font-style: normal;
+}
+.aspect i {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-style: normal;
+  white-space: nowrap;
+}
+.sec .terms,
+.screen-body > .terms {
+  margin-top: 26px;
+}
+.terms-list {
+  margin: 0 0 20px;
+}
+.terms-list div {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.terms-list dt {
+  margin-bottom: 2px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.terms-list dd {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.cast-card .terms {
+  margin: 18px -2px 0;
+  border-top: 0;
+}
+.cast-card .terms summary {
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
 /* ===== 择日 ===== */
 .zeri {
   margin-top: 26px;
@@ -2054,9 +2132,7 @@ p.verdict {
   margin-top: 14px;
 }
 .divine-rule {
-  margin: 26px 0 0;
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
+  margin: 0;
   color: var(--ink-2);
   font-size: 15px;
   letter-spacing: 0.04em;
