@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import data from '../src/data/divine.json';
 import yaoData from '../src/data/yao.json';
-import { type LineValue, castTitle, coinsValue, divine, guaGist, guaImage, isMoving, isYang, positionText, tossCoins } from '../src/lib/divine';
+import { type LineValue, castTitle, coinsValue, divine, guaGist, guaImage, guaXiang, isMoving, isYang, lineXiang, positionText, tossCoins } from '../src/lib/divine';
 import { dailyGua } from '../src/lib/dailyGua';
 import { dateKey } from '../src/lib/lunar';
 import terms from '../src/data/terms.json';
@@ -166,5 +166,27 @@ describe('讲得白话一点', () => {
       expect(`${g.tiyongTech}：${g.tiyongPlain}`).toBe(g.tiyongText);
       expect(g.changeText).toBe(`变卦${g.changed.full}：${g.changeTo}`);
     }
+  });
+});
+
+describe('借鉴《易经・象传》', () => {
+  it('六十四卦都有大象原文、白话与放到今天；乾坤的大象是那两句名句', () => {
+    expect(guaXiang(1).text).toBe('天行健，君子以自强不息。');
+    expect(guaXiang(2).text).toBe('地势坤，君子以厚德载物。');
+    const plains = new Set<string>();
+    for (let n = 1; n <= 64; n++) {
+      const x = guaXiang(n);
+      expect(x.text, `第 ${n} 卦`).toMatch(/(君子|先王|后|上|大人)以/);
+      expect(x.plain.length).toBeGreaterThan(10);
+      expect(x.today.length).toBeGreaterThan(5);
+      plains.add(x.plain);
+    }
+    expect(plains.size).toBe(64);
+  });
+  it('小象：每卦六句（乾坤多一句讲用九、用六）', () => {
+    for (let n = 1; n <= 64; n++) for (let p = 1; p <= 6; p++) expect(lineXiang(n, p).length, `第 ${n} 卦第 ${p} 爻`).toBeGreaterThan(2);
+    expect(lineXiang(1, 1)).toBe('潜龙勿用，阳在下也。');
+    expect(lineXiang(1, 7)).toBe('用九，天德不可为首也。');
+    expect(lineXiang(2, 7)).toBe('用六永贞，以大终也。');
   });
 });

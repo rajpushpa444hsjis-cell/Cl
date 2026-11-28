@@ -16,7 +16,13 @@ export type LineValue = 6 | 7 | 8 | 9;
 /** 一枚钱：1 为背、0 为字。 */
 export type Coin = 0 | 1;
 
-type Hex = { judgment: string; lines: { label: string; text: string }[]; extra?: { label: string; text: string } };
+type Hex = {
+  judgment: string;
+  lines: { label: string; text: string }[];
+  extra?: { label: string; text: string };
+  xiang: string;
+  lineXiang: string[];
+};
 const YAO = yaoData.hexagrams as Record<string, Hex>;
 const DAILY = daily.hexagrams as Record<string, { theme: string; to: string; yao: string[] }>;
 const JUDGMENT = data.judgment as Record<string, string>;
@@ -33,6 +39,13 @@ export const guaImage = (no: number) => IMAGE[no];
 export const guaGist = (no: number, cat: CategoryId) => GIST[no][cat];
 /** 第几爻（1–6，由下往上）代表什么。 */
 export const positionText = (pos: number) => POSITIONS[pos];
+const XIANG = data.xiang as Record<string, { plain: string; today: string }>;
+
+/** 《象传》的大象：原文、白话、放到今天该怎么做。 */
+export const guaXiang = (no: number) => ({ text: YAO[no].xiang, ...XIANG[no] });
+/** 《象传》的小象：第几爻（1–6；7 为乾坤的用九、用六）。 */
+export const lineXiang = (no: number, pos: number) => YAO[no].lineXiang[pos - 1];
+
 /** 卦辞的白话（针对所问之事）。 */
 export const judgmentReading = (no: number) => JUDGMENT[no];
 

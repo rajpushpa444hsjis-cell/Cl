@@ -102,8 +102,24 @@ for (const { title, text } of pages) {
       judgment.push(t.replace(/^[^：]{1,3}：/, '')); // 去掉开头的“坤：”
     }
   }
+  // 《象传》：“象曰”之后，第一行（** 开头）是大象，讲整卦；接着每行（*# 开头）是小象，依序讲初爻到上爻（乾、坤另有用九、用六）
+  const xs = body.indexOf('象曰：', end);
+  if (xs < 0) throw new Error(`${title}：找不到象曰`);
+  const xe = body.slice(xs + 3).search(/\n\s*\n|\*'''/);
+  const xiangSec = resolveVariants(title.replace('周易/', ''), body.slice(xs, xe < 0 ? undefined : xs + 3 + xe));
+  if (/\{\{/.test(xiangSec)) throw new Error(`${title}：象传里还有没处理的模板`);
+  let xiang = '';
+  const lineXiang = [];
+  for (const raw of xiangSec.split('\n')) {
+    const m = /^(\*+#?)(.*)$/.exec(raw.trim());
+    if (!m) continue;
+    const t = clean(m[2]);
+    if (!t || t.startsWith('象曰')) continue;
+    if (m[1].endsWith('#')) lineXiang.push(t);
+    else if (!xiang) xiang = t;
+  }
   if (hant[no]) throw new Error(`第 ${no} 卦重复：${title}`);
-  hant[no] = { title: title.replace('周易/', ''), judgment: judgment.join(''), lines, extra };
+  hant[no] = { title: title.replace('周易/', ''), judgment: judgment.join(''), lines, extra, xiang, lineXiang };
 }
 
 // —— 检查 ——
@@ -114,6 +130,9 @@ for (let no = 1; no <= 64; no++) {
   if (h.lines.length !== 6) throw new Error(`第 ${no} 卦 ${h.title} 不是六爻：${h.lines.length}`);
   if (!h.judgment) throw new Error(`第 ${no} 卦缺卦辞`);
   if ((no === 1 || no === 2) !== !!h.extra) throw new Error(`第 ${no} 卦的用九／用六不对`);
+  // 大象一律是“上下两卦的景象，君子（或先王、后、上、大人）以……”
+  if (!/^.+[，,；;。](君子|先王|后|上|大人)以/.test(h.xiang)) throw new Error(`第 ${no} 卦 ${h.title} 的大象看不懂：${h.xiang}`);
+  if (h.lineXiang.length !== (h.extra ? 7 : 6)) throw new Error(`第 ${no} 卦 ${h.title} 的小象有 ${h.lineXiang.length} 句`);
   if (h.extra && h.extra.label !== (no === 1 ? '用九' : '用六')) throw new Error(`第 ${no} 卦应为${no === 1 ? '用九' : '用六'}`);
   const [up, low] = [...byNo[no].key];
   const topDown = [...gua.trigrams[up].lines, ...gua.trigrams[low].lines];
@@ -141,7 +160,7 @@ const toHans = (s) =>
 
 const out = {
   _说明:
-    '《周易》六十四卦的卦辞与爻辞原文（简体），乾、坤另有用九、用六（extra）。由 scripts/yijing/build.mjs 自中文维基文库《周易》各卦页面取出并检查后产生，请勿手改；繁体原文在 docs/周易卦爻辭原文.txt。lines 由初爻到上爻。',
+    '《周易》六十四卦的卦辞与爻辞原文（简体），乾、坤另有用九、用六（extra）；xiang 是《象传》的大象，lineXiang 是小象（初爻到上爻，乾坤多一句）。由 scripts/yijing/build.mjs 自中文维基文库《周易》各卦页面取出并检查后产生，请勿手改；繁体原文在 docs/周易卦爻辭原文.txt。lines 由初爻到上爻。',
   source: '中文维基文库《周易》（zh.wikisource.org/wiki/周易）',
   hexagrams: {},
 };
@@ -153,8 +172,11 @@ for (let no = 1; no <= 64; no++) {
     lines: h.lines.map((l) => ({ label: l.label, text: toHans(l.text) })),
     // 乾的“用九”、坤的“用六”：六爻全动时读这一句
     ...(h.extra ? { extra: { label: h.extra.label, text: toHans(h.extra.text) } } : {}),
+    // 《象传》：大象讲整卦，小象依序讲初爻到上爻（乾坤多一句讲用九、用六）
+    xiang: toHans(h.xiang),
+    lineXiang: h.lineXiang.map(toHans),
   };
-  report.push(`## ${no} ${h.title}`, `卦辭：${h.judgment}`, ...h.lines.map((l) => `${l.label}：${l.text}`), ...(h.extra ? [`${h.extra.label}：${h.extra.text}`] : []), '');
+  report.push(`## ${no} ${h.title}`, `卦辭：${h.judgment}`, ...h.lines.map((l) => `${l.label}：${l.text}`), ...(h.extra ? [`${h.extra.label}：${h.extra.text}`] : []), `大象：${h.xiang}`, ...h.lineXiang.map((x, i) => `小象${i + 1}：${x}`), '');
 }
 report.push('## 異文取捨（原文標出兩種讀法之處，取通行本）', ...chosen, '');
 // 转完之后不该留下基本多文种平面以外的罕用字（手机上多半显示成方块）

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { PersonalLine } from '../lib/personal';
 import { type Advice, type Gua, type Qian, cnNumber } from '../lib/qian';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
+import { XiangBlock } from './DivineView';
 import { GuaFig } from './GuaFig';
 import { Terms } from './Terms';
 import { GradeSeal } from './ui';
@@ -87,6 +88,7 @@ function GuaBlock(props: { g: Gua }) {
           上{g.upper.name}为{g.upper.image}，下{g.lower.name}为{g.lower.image}
         </p>
         <p>{g.note}</p>
+        <XiangBlock no={g.no} />
       </div>
     </section>
   );

@@ -2,9 +2,20 @@ import { defineConfig } from 'vitest/config';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// 建置时间（UTC+8），显示在设置页最下面
+const stamp = new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 16).replace('T', ' ');
+
 export default defineConfig(({ mode }) => ({
   // 相对路径：之后不论部署到网域根目录或子路径（如 GitHub Pages 的 /Cl/）都能运作
   base: './',
+  define: { __BUILD__: JSON.stringify(stamp) },
+  // 预览连结版没有 PWA 插件，virtual:pwa-register 换成空的版本
+  resolve: {
+    alias:
+      mode === 'artifact'
+        ? [{ find: 'virtual:pwa-register', replacement: decodeURIComponent(new URL('./src/lib/pwa-register-stub.ts', import.meta.url).pathname) }]
+        : [],
+  },
   plugins: [
     preact(),
     // 预览连结版（--mode artifact）没有 Service Worker，不产生 PWA 文件

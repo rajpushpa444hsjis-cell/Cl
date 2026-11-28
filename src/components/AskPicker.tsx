@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'preact/hooks';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
 import { Icon } from './ui';
 
 export type AskMode = 'qian' | 'gua' | 'date';
+
+const PAGE = 5; // 现成的问法一次列几个
 
 /** 问事的三种方式：求签、起卦、择日。求签与起卦只在第一屏出现。 */
 export function ModeSwitch(props: { mode: AskMode; onChange: (m: AskMode) => void }) {
@@ -36,6 +39,12 @@ export function AskPicker(props: {
   onNext: () => void;
 }) {
   const { category, question } = props;
+  // 现成的问法一次列五个，可以换一批；换了类别就从第一批看起
+  const [page, setPage] = useState(0);
+  useEffect(() => setPage(0), [category]);
+  const asks = CATEGORIES.find((c) => c.id === category)?.asks ?? [];
+  const pages = Math.ceil(asks.length / PAGE);
+  const shown = asks.slice(page * PAGE, page * PAGE + PAGE);
   if (props.picking || !category)
     return (
       <div class="card">
@@ -54,12 +63,19 @@ export function AskPicker(props: {
       {/* 标题与“回去换类别”放在同一行，省下一行的高度 */}
       <div class="ask-head">
         <h2 class="card-title">想问什么？</h2>
-        <button class="link back" aria-label={`${categoryLabel(category)}，换一个类别`} onClick={props.onPicking}>
-          <Icon name="back" size={16} /> {categoryLabel(category)}
-        </button>
+        <div class="ask-tools">
+          {pages > 1 && (
+            <button class="link more" onClick={() => setPage((p) => (p + 1) % pages)}>
+              换一批
+            </button>
+          )}
+          <button class="link back" aria-label={`${categoryLabel(category)}，换一个类别`} onClick={props.onPicking}>
+            <Icon name="back" size={16} /> {categoryLabel(category)}
+          </button>
+        </div>
       </div>
-      <div class="ask-list" role="radiogroup" aria-label="现成的问法">
-        {(CATEGORIES.find((c) => c.id === category)?.asks ?? []).map((a) => (
+      <div class="ask-list" role="radiogroup" aria-label="现成的问法" key={page}>
+        {shown.map((a) => (
           <button key={a} role="radio" aria-checked={question === a} class={`ask ${question === a ? 'on' : ''}`} onClick={() => props.onQuestion(question === a ? '' : a)}>
             {a}
           </button>

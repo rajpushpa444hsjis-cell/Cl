@@ -217,6 +217,8 @@ export function Settings(props: Props) {
         {dataMsg && <p class="hint" role="status">{dataMsg}</p>}
       </div>
 
+      <p class="aside version">版本 {__BUILD__}</p>
+
     </section>
   );
 }

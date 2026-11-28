@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { XiangBlock } from '../components/DivineView';
 import { GuaFig } from '../components/GuaFig';
 import { Terms } from '../components/Terms';
 import { CardSheet } from '../components/CardSheet';
@@ -129,6 +130,7 @@ export function Home({ profile, bazi, day, isToday, todayKey, fortune: f, gua, d
         </div>
         <p class="soft">{guaImage(gua.no)}</p>
         <p>{gua.text}</p>
+        <XiangBlock no={gua.no} brief />
 
         <div class="gua-part">
           <p class="divine-label">关键・第{CN[gua.moving - 1]}爻</p>

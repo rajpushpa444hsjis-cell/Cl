@@ -1,5 +1,5 @@
 import yaoData from '../data/yao.json';
-import { type Divination, type Focus, guaGist, guaImage, isMoving, judgmentReading, positionText, valueName } from '../lib/divine';
+import { type Divination, type Focus, guaGist, guaImage, guaXiang, isMoving, judgmentReading, lineXiang, positionText, valueName } from '../lib/divine';
 import { CATEGORIES, type CategoryId, categoryLabel } from '../lib/storage';
 import { GuaFig } from './GuaFig';
 import { Terms } from './Terms';
@@ -21,6 +21,22 @@ function GuaLine(props: { tag: string; g: Divination['base']; moving?: number[] 
         <h2 class="theme">{props.g.full}</h2>
         <p class="lead">{props.g.theme}</p>
       </div>
+    </div>
+  );
+}
+
+/** 《易经・象传》对这一卦的说法：原文、白话、放到今天该怎么做。 */
+export function XiangBlock(props: { no: number; brief?: boolean }) {
+  const x = guaXiang(props.no);
+  return (
+    <div class="xiang">
+      <p class="divine-label">《易经・象传》这样说</p>
+      <p class="divine-text">{x.text}</p>
+      {!props.brief && <p>{x.plain}</p>}
+      <p class="xiang-today">
+        <b>放到今天</b>
+        {x.today}
+      </p>
     </div>
   );
 }
@@ -65,6 +81,7 @@ export function DivineView(props: { d: Divination; category: CategoryId; questio
           <h3>这一卦的样子</h3>
           <p>{guaImage(d.base.no)}</p>
           {!baseJudgmentInFocus && <p class="divine-more">{judgmentReading(d.base.no)}</p>}
+          <XiangBlock no={d.base.no} />
         </section>
       )}
 
@@ -82,6 +99,9 @@ export function DivineView(props: { d: Divination; category: CategoryId; questio
               {f.tag && <b>{f.tag}</b>}
               {f.text}
             </p>
+            {f.kind !== 'judgment' && (
+              <p class="divine-pos">《象传》：{lineXiang(f.from === 'base' ? d.base.no : d.changed!.no, f.kind === 'extra' ? 7 : f.pos!)}</p>
+            )}
             <p>{f.reading}</p>
           </section>
         ))}
@@ -124,7 +144,10 @@ export function DivineView(props: { d: Divination; category: CategoryId; questio
               {d.values.map((v, i) => (
                 <li key={i} class={isMoving(v) ? 'moving' : ''}>
                   <b>{YAO[d.base.no].lines[i].label}</b>
-                  <span>{YAO[d.base.no].lines[i].text}</span>
+                  <span>
+                    {YAO[d.base.no].lines[i].text}
+                    <small>《象传》：{lineXiang(d.base.no, i + 1)}</small>
+                  </span>
                   <em>{isMoving(v) ? `${valueName(v)}・会变` : valueName(v)}</em>
                 </li>
               ))}

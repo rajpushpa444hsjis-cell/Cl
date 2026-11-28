@@ -7,6 +7,7 @@ import { dailyFortune } from './lib/fortune';
 import { setVibrateEnabled } from './lib/haptics';
 import { addDays, computeBazi, dateKey, getDayInfo, parseKey } from './lib/lunar';
 import { dueReviews } from './lib/review';
+import { applyUpdate, onUpdateReady } from './lib/update';
 import {
   type Backup,
   type JournalEntry,
@@ -67,6 +68,8 @@ export function App() {
   const [people, setPeople] = useState<Person[]>(loadPeople); // 家人
   const [activeId, setActiveId] = useState<string>(loadActive); // 现在看的是谁
   const [viewKey, setViewKey] = useState<string | null>(null); // 首页正在看的日子；null 为今天
+  const [updateReady, setUpdateReady] = useState(false); // 新版本装好了，等着点一下更新
+  useEffect(() => onUpdateReady(() => setUpdateReady(true)), []);
 
   // 主题、音效、震动
   useEffect(() => {
@@ -155,6 +158,11 @@ export function App() {
 
   return (
     <div class="app">
+      {updateReady && (
+        <button class="update-pill" onClick={applyUpdate}>
+          有新版本・点一下更新
+        </button>
+      )}
       <main>
         <div hidden={tab !== 'home'}>
           <Home
